@@ -1,7 +1,7 @@
 NestJS JSON RPC package
 
 How to use:
- - import module `dasf`
+ - import module `RpcModule`, example  
 ```typescript
         RpcModule.forRoot({
             path: '/rpc', // path to RPC
