@@ -15,10 +15,10 @@ import {
     UseInterceptors,
     UsePipes,
 } from '@nestjs/common';
-import { IRpcHandler, RpcHandler } from './rpc/rpc-explorer';
+import { IRpcHandler, RpcHandler } from '../rpc/rpc-explorer';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { RpcId, RpcPayload, RpcVersion } from './rpc/decorators';
+import { RpcId, RpcPayload, RpcVersion } from '../rpc/decorators';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
