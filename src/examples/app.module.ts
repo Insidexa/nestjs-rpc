@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { RpcModule } from './rpc/rpc.module';
+import { RpcModule } from '../rpc/rpc.module';
 import {
     AuthGuard,
     HttpExceptionFilter,
