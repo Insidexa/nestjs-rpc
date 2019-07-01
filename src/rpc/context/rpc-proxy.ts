@@ -20,10 +20,10 @@ export class RpcProxy {
             try {
                 return await targetCallback(req, res, next);
             } catch (e) {
+                const host = new ExecutionContextHost([req]);
+                exceptionsHandler.next(e, host);
+
                 return e;
-                // console.log(e)
-                // const host = new ExecutionContextHost([req, res]);
-                // exceptionsHandler.next(e, host);
             }
         };
     }
@@ -46,7 +46,7 @@ export class RpcProxy {
             try {
                 await targetCallback(err, req, res, next);
             } catch (e) {
-                const host = new ExecutionContextHost([req, res]);
+                const host = new ExecutionContextHost([req]);
                 exceptionsHandler.next(e, host);
             }
         };

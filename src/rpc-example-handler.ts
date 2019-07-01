@@ -17,7 +17,6 @@ import {
 } from '@nestjs/common';
 import { IRpcHandler, RpcHandler } from './rpc/rpc-explorer';
 import { Observable } from 'rxjs';
-import { Response } from 'express';
 import { tap } from 'rxjs/operators';
 import { RpcId, RpcPayload, RpcVersion } from './rpc/decorators';
 
@@ -26,7 +25,7 @@ export class AuthGuard implements CanActivate {
     canActivate(
         context: ExecutionContext,
     ): boolean | Promise<boolean> | Observable<boolean> {
-        console.log('Guard');
+        console.log('Guard', arguments);
         return true;
     }
 }
@@ -34,7 +33,7 @@ export class AuthGuard implements CanActivate {
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
     intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-        console.log('Before...');
+        console.log('Before...', arguments);
 
         const now = Date.now();
         return next
@@ -48,29 +47,16 @@ export class LoggingInterceptor implements NestInterceptor {
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
     catch(exception: HttpException, host: ArgumentsHost) {
-        console.log('Filter');
-        const ctx = host.switchToHttp();
-        const response = ctx.getResponse<Response>();
-        const request = ctx.getRequest<Request>();
-        const status = exception.getStatus();
+        console.log('Filter', arguments);
 
         return exception;
-        // response
-        //     .status(status)
-        //     .json({
-        //         statusCode: status,
-        //         timestamp: new Date().toISOString(),
-        //         path: request.url,
-        //         response: exception.getResponse(),
-        //         message: exception.message,
-        //     });
     }
 }
 
 @Injectable()
 export class ValidationPipe implements PipeTransform {
     transform(value: any, metadata: ArgumentMetadata) {
-        console.log('Pipe');
+        console.log('Pipe', arguments);
         return value;
     }
 }
@@ -89,7 +75,6 @@ export class RpcExampleHandler implements IRpcHandler<any> {
         @RpcId() id: any,
     ) {
         console.log('arguments', arguments)
-        // throw new HttpException('2123', 200)
         console.log('payload', payload);
         console.log('version', version);
         console.log('id', id);
