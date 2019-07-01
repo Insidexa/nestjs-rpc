@@ -1,38 +1,32 @@
-import { Injectable, SetMetadata, Type } from '@nestjs/common';
-import { ModulesContainer } from '@nestjs/core';
-import { flattenDeep, compact } from 'lodash';
+import { Injectable, SetMetadata } from '@nestjs/common';
+import { compact, flattenDeep } from 'lodash';
+import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
+import { Injectable as IInjectable } from '@nestjs/common/interfaces';
 
 export interface IRpcHandler<T> {
-    invoke(payload: T);
+    invoke(...args);
 }
 
 export interface RpcMetadata {
     method: string;
 }
+
 const RpcMetadataKey = '__rpc-metadata__';
 export const RpcHandler = (metadata: RpcMetadata) => SetMetadata(RpcMetadataKey, metadata);
 
 export interface RpcHandlerInfo {
-    type: Type<any>;
+    method: string;
+    id: string;
     instance: IRpcHandler<any>;
 }
 
 @Injectable()
 export class RpcExplorer {
-    constructor(
-        private modulesContainer: ModulesContainer,
-    ) {
-    }
-
-    public explore(): RpcHandlerInfo[] {
-        const components = [
-            ...this.modulesContainer.values(),
-        ].map(module => module.providers);
-
+    public exploreProviders(components: Map<any, InstanceWrapper<IInjectable>>): RpcHandlerInfo[] {
         return compact(flattenDeep(
-            components.map(component =>
+            Array.from(components).map(component =>
                 [...component.values()]
-                    .map(({ instance }) => this.filterCommands(instance as IRpcHandler<any>)),
+                    .map(({instance}) => this.filterCommands(instance as IRpcHandler<any>)),
             ),
         ));
     }
@@ -48,6 +42,6 @@ export class RpcExplorer {
             return;
         }
 
-        return { ...metadata, instance };
+        return {...metadata, instance};
     }
 }
