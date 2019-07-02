@@ -12,3 +12,7 @@ export const RpcId = createParamDecorator((data, req) => {
 export const RpcVersion = createParamDecorator((data, req) => {
     return req.body.jsonrpc;
 });
+
+export const RpcMethod = createParamDecorator((data, req) => {
+    return req.body.method;
+});
