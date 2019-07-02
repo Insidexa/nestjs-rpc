@@ -13,7 +13,7 @@ How to use:
  - create rpc handler  
 ```typescript
 import { IRpcHandler, RpcHandler } from '../src/rpc/rpc-explorer';
-import { RpcId, RpcPayload, RpcVersion } from '../src/rpc/decorators';
+import { RpcId, RpcPayload, RpcVersion, RpcMethod } from '../src/rpc/decorators';
 
 @RpcHandler({
     method: 'test',
@@ -22,20 +22,18 @@ export class TestHandler implements IRpcHandler<Payload> {
     public async invoke(
         @RpcPayload() payload: Payload,
         @RpcVersion() version: string,
-        @RpcId() id: any,
+        @RpcId() id: number | string,
+        @RpcMethod() method: string
     ) {
         return payload;
     }
 }
 ```
 
-|  name |  description | required  | other  |
-|---|---|---|---|
-| `@RpcPayload()`  |  get payload ( params ) | false  |   | 
-| `@RpcVersion()` | get rpc version  | true  |   |   |
-| `@RpcId()`  | get client operation id  | false  | if not send - response not send, RPC notification  |
+ - add `TestHandler` to providers array  
+ 
 
-
+How to use  
 Example simple request to handler:  
 request --> `curl -X POST "http://localhost:3002/rpc" -H "accept: application/json" -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "method": "example", "params": 2}'`  
 response <-- `{"jsonrpc":"2.0","result":2,"id":null}`
@@ -43,3 +41,21 @@ response <-- `{"jsonrpc":"2.0","result":2,"id":null}`
 Batch requests  
 request --> `curl -X POST "http://localhost:3002/rpc" -H "accept: application/json" -H "Content-Type: application/json" -d '[{"jsonrpc": "2.0", "method": "example", "params": 2}, { "jsonrpc": "2.0", "method": "test" }]'`  
 response <-- `[{"jsonrpc":"2.0","result":2,"id":null},{"jsonrpc":"2.0","id":null}]`
+
+ 
+ 
+Fields description
+
+| field |  decorator |  description | required  | other  |
+|---|---|---|---|---|
+| `params` | `@RpcPayload()`  |  get payload ( params ) | false  |   | 
+| `jsonrpc` | `@RpcVersion()` | get rpc version  | true  |   |   |
+| `method` | `@RpcMethod()` | get rpc version  | true  |   |   |
+| `id` | `@RpcId()`  | get client operation id  | false  | if not send - response not send, RPC notification  |
+
+
+However, you don't have an access to the native response object in
+Exception filters, Interceptors and Guards (as in the HTTP app).  
+Because RPCModule in rpc batch request collect responses from handlers
+and if you using response you override headers or send response in some handlers.
+Maybe, you can receive errors, for example `headers already sent`.  
