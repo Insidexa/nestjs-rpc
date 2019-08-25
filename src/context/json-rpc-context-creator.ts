@@ -1,4 +1,4 @@
-import { Controller, HttpServer, Transform } from '@nestjs/common/interfaces';
+import { Controller, PipeTransform, Transform } from '@nestjs/common/interfaces';
 import { GuardsConsumer } from '@nestjs/core/guards/guards-consumer';
 import { GuardsContextCreator } from '@nestjs/core/guards/guards-context-creator';
 import { InterceptorsConsumer } from '@nestjs/core/interceptors/interceptors-consumer';
@@ -8,21 +8,20 @@ import { PipesContextCreator } from '@nestjs/core/pipes/pipes-context-creator';
 import { IRouteParamsFactory } from '@nestjs/core/router/interfaces/route-params-factory.interface';
 import { HandlerMetadata, HandlerMetadataStorage } from '@nestjs/core/helpers/handler-metadata-storage';
 import { ContextUtils } from '@nestjs/core/helpers/context-utils';
-import { CustomHeader, RouterResponseController } from '@nestjs/core/router/router-response-controller';
 import { ForbiddenException, RouteParamsMetadata } from '@nestjs/common';
 import { STATIC_CONTEXT } from '@nestjs/core/injector/constants';
-import { CUSTOM_ROUTE_AGRS_METADATA, HEADERS_METADATA, ROUTE_ARGS_METADATA, } from '@nestjs/common/constants';
+import { CUSTOM_ROUTE_AGRS_METADATA, ROUTE_ARGS_METADATA } from '@nestjs/common/constants';
 import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
-import { isEmpty, isFunction, isString } from '@nestjs/common/utils/shared.utils';
+import { isFunction, isString } from '@nestjs/common/utils/shared.utils';
 import { FORBIDDEN_MESSAGE } from '@nestjs/core/guards/constants';
 import { ParamProperties } from '@nestjs/core/router/router-execution-context';
 
 type Fn = (...args) => any;
+const response = null;
 
-export class RpcContextCreator {
+export class JsonRpcContextCreator {
     private readonly handlerMetadataStorage = new HandlerMetadataStorage();
     private readonly contextUtils = new ContextUtils();
-    private readonly responseController: RouterResponseController;
 
     constructor(
         private readonly paramsFactory: IRouteParamsFactory,
@@ -32,9 +31,7 @@ export class RpcContextCreator {
         private readonly guardsConsumer: GuardsConsumer,
         private readonly interceptorsContextCreator: InterceptorsContextCreator,
         private readonly interceptorsConsumer: InterceptorsConsumer,
-        readonly applicationRef: HttpServer,
     ) {
-        this.responseController = new RouterResponseController(applicationRef);
     }
 
     public create(
@@ -50,9 +47,6 @@ export class RpcContextCreator {
             fnHandleResponse,
             paramtypes,
             getParamsMetadata,
-            httpStatusCode,
-            responseHeaders,
-            hasCustomHeaders,
         } = this.getMetadata(instance, callback, methodName);
 
         const paramsOptions = this.contextUtils.mergeParamsMetatypes(
@@ -103,17 +97,12 @@ export class RpcContextCreator {
         ) => {
             const args = this.contextUtils.createNullArray(argsLength);
             if (fnCanActivate) {
-                await fnCanActivate([req, res]);
-            }
-
-            this.responseController.setStatus(res, httpStatusCode);
-            if (hasCustomHeaders) {
-                this.responseController.setHeaders(res, responseHeaders);
+                await fnCanActivate([ req, response ]);
             }
 
             const result = await this.interceptorsConsumer.intercept(
                 interceptors,
-                [req, res],
+                [ req, response ],
                 instance,
                 callback,
                 handler(args, req, res, next),
@@ -159,26 +148,17 @@ export class RpcContextCreator {
 
         const fnHandleResponse = this.createHandleResponseFn();
 
-        const responseHeaders = this.reflectResponseHeaders(callback);
-        const hasCustomHeaders = !isEmpty(responseHeaders);
-
         const handlerMetadata: HandlerMetadata = {
             argsLength,
             fnHandleResponse,
             paramtypes,
             getParamsMetadata,
             httpStatusCode: 200,
-            hasCustomHeaders,
-            responseHeaders,
+            hasCustomHeaders: false,
+            responseHeaders: [],
         };
         this.handlerMetadataStorage.set(instance, methodName, handlerMetadata);
         return handlerMetadata;
-    }
-
-    public reflectResponseHeaders(
-        callback: (...args: any[]) => any,
-    ): CustomHeader[] {
-        return Reflect.getMetadata(HEADERS_METADATA, callback) || [];
     }
 
     public exchangeKeysForValues(
@@ -190,7 +170,7 @@ export class RpcContextCreator {
     ): ParamProperties[] {
         this.pipesContextCreator.setModuleContext(moduleContext);
         return keys.map(key => {
-            const {index, data, pipes: pipesCollection} = metadata[key];
+            const { index, data, pipes: pipesCollection } = metadata[key];
             const pipes = this.pipesContextCreator.createConcreteContext(
                 pipesCollection,
                 contextId,
@@ -199,9 +179,9 @@ export class RpcContextCreator {
             const type = this.contextUtils.mapParamType(key);
 
             if (key.includes(CUSTOM_ROUTE_AGRS_METADATA)) {
-                const {factory} = metadata[key];
+                const { factory } = metadata[key];
                 const customExtractValue = this.getCustomFactory(factory, data);
-                return {index, extractValue: customExtractValue, type, data, pipes};
+                return { index, extractValue: customExtractValue, type, data, pipes };
             }
             const numericType = Number(type);
             const extractValue = <TRequest, TResponse>(
@@ -211,10 +191,10 @@ export class RpcContextCreator {
             ) =>
                 this.paramsFactory.exchangeKeyForValue(numericType, data, {
                     req,
-                    res,
+                    res: response,
                     next,
                 });
-            return {index, extractValue, type: numericType, data, pipes};
+            return { index, extractValue, type: numericType, data, pipes };
         });
     }
 
@@ -234,17 +214,12 @@ export class RpcContextCreator {
             type,
             data,
         }: { metatype: any; type: RouteParamtypes; data: any },
-        transforms: Array<Transform<any>>,
+        transforms: Array<PipeTransform<any>>,
     ): Promise<any> {
-        if (
-            type === RouteParamtypes.BODY ||
-            type === RouteParamtypes.QUERY ||
-            type === RouteParamtypes.PARAM ||
-            isString(type)
-        ) {
+        if (type === RouteParamtypes.BODY || isString(type)) {
             return this.pipesConsumer.apply(
                 value,
-                {metatype, type, data} as any,
+                { metatype, type, data } as any,
                 transforms,
             );
         }
@@ -294,7 +269,7 @@ export class RpcContextCreator {
 
                     args[index] = await this.getParamValue(
                         value,
-                        {metatype, type, data} as any,
+                        { metatype, type, data } as any,
                         pipes.concat(paramPipes),
                     );
                 }),
@@ -305,9 +280,16 @@ export class RpcContextCreator {
 
     public createHandleResponseFn() {
         return async <TResult, TResponse>(result: TResult, res: TResponse) => {
-            result = await this.responseController.transformToResult(result);
+            result = await this.transformToResult(result);
 
             return result;
         };
+    }
+
+    public async transformToResult(resultOrDeffered: any) {
+        if (resultOrDeffered && isFunction(resultOrDeffered.subscribe)) {
+            return resultOrDeffered.toPromise();
+        }
+        return resultOrDeffered;
     }
 }

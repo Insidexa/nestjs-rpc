@@ -2,10 +2,7 @@ version: "3"
 services:
   app:
     image: node:12.3.1
-    ports:
-      - 3002:3000
     working_dir: /var/www
     user: node
     volumes:
       - ./:/var/www
-    command: npm run start:dev

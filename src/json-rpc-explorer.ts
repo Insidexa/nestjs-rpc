@@ -21,12 +21,12 @@ export interface RpcHandlerInfo {
 }
 
 @Injectable()
-export class RpcExplorer {
+export class JsonRpcExplorer {
     public exploreProviders(components: Map<any, InstanceWrapper<IInjectable>>): RpcHandlerInfo[] {
         return compact(flattenDeep(
             Array.from(components).map(component =>
-                [...component.values()]
-                    .map(({instance}) => this.filterCommands(instance as IRpcHandler<any>)),
+                [ ...component.values() ]
+                    .map(({ instance }) => this.filterCommands(instance as IRpcHandler<any>)),
             ),
         ));
     }
@@ -42,6 +42,6 @@ export class RpcExplorer {
             return;
         }
 
-        return {...metadata, instance};
+        return { ...metadata, instance };
     }
 }

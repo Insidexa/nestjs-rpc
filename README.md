@@ -1,9 +1,11 @@
 NestJS JSON RPC package
 
+Implemented JSON RPC [specification](https://www.jsonrpc.org/specification)
+
 How to use:
  - import module `RpcModule`, example  
 ```typescript
-        RpcModule.forRoot({
+        JsonRpcModule.forRoot({
             path: '/rpc', // path to RPC
         })
 ```
@@ -31,7 +33,9 @@ export class TestHandler implements IRpcHandler<Payload> {
 ```
 
  - add `TestHandler` to providers array  
- 
+
+
+See examples in src/examples
 
 How to use  
 Example simple request to handler:  
@@ -40,7 +44,7 @@ response <-- `{"jsonrpc":"2.0","result":2,"id":null}`
 
 Batch requests  
 request --> `curl -X POST "http://localhost:3002/rpc" -H "accept: application/json" -H "Content-Type: application/json" -d '[{"jsonrpc": "2.0", "method": "example", "params": 2}, { "jsonrpc": "2.0", "method": "test" }]'`  
-response <-- `[{"jsonrpc":"2.0","result":2,"id":null},{"jsonrpc":"2.0","id":null}]`
+response <-- `[{"jsonrpc":"2.0","result":2,"id":null}]`
 
  
  

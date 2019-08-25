@@ -7,7 +7,7 @@ export type RouterProxyCallback = <TRequest, TResponse>(
     next?: () => void,
 ) => void;
 
-export class RpcProxy {
+export class JsonRpcProxy {
     public createProxy(
         targetCallback: RouterProxyCallback,
         exceptionsHandler: ExceptionsHandler,
@@ -20,7 +20,7 @@ export class RpcProxy {
             try {
                 return await targetCallback(req, res, next);
             } catch (e) {
-                const host = new ExecutionContextHost([req]);
+                const host = new ExecutionContextHost([ req, null ]);
                 exceptionsHandler.next(e, host);
 
                 return e;
@@ -46,7 +46,7 @@ export class RpcProxy {
             try {
                 await targetCallback(err, req, res, next);
             } catch (e) {
-                const host = new ExecutionContextHost([req]);
+                const host = new ExecutionContextHost([ req, null ]);
                 exceptionsHandler.next(e, host);
             }
         };
