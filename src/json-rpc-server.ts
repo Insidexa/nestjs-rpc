@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { AbstractHttpAdapter, ModuleRef } from '@nestjs/core';
-import { JsonRpcConfig } from './json-rpc.module';
+import { AbstractHttpAdapter, ApplicationConfig, ModuleRef } from '@nestjs/core';
+import { JsonRpcConfig } from './interfaces/json-rpc-config';
 import { NextFunction, Request } from 'express';
 import { RpcHandlerInfo } from './json-rpc-explorer';
 import { isEqual, sortBy } from 'lodash';
@@ -41,22 +41,22 @@ export class JsonRpcServer {
 
     constructor(
         private moduleRef: ModuleRef,
+        private config: ApplicationConfig,
     ) {
         const module = moduleRef as any;
         const container = module.container;
-        const config = module.container.applicationConfig;
         this.executionContextCreator = new JsonRpcContextCreator(
             new RouteParamsFactory(),
-            new PipesContextCreator(container, config),
+            new PipesContextCreator(container, this.config),
             new PipesConsumer(),
-            new GuardsContextCreator(container, config),
+            new GuardsContextCreator(container, this.config),
             new GuardsConsumer(),
-            new InterceptorsContextCreator(container, config),
+            new InterceptorsContextCreator(container, this.config),
             new InterceptorsConsumer(),
         );
         this.exceptionsFilter = new RouterExceptionFilters(
             container,
-            config,
+            this.config,
             container.getHttpAdapterRef(),
         );
     }

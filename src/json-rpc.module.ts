@@ -1,23 +1,10 @@
-import { DynamicModule, Inject, Module, OnModuleInit, Type } from '@nestjs/common';
+import { DynamicModule, Inject, Module, OnModuleInit, Provider } from '@nestjs/common';
 import { HttpAdapterHost, ModulesContainer } from '@nestjs/core';
 import { JsonRpcServer } from './json-rpc-server';
 import { JsonRpcExplorer, RpcHandlerInfo } from './json-rpc-explorer';
-
-export interface JsonRpcConfig {
-    path: string;
-}
-
-export interface JsonRpcOptionsFactory {
-    createJsonRpcOptions(): Promise<JsonRpcConfig> | JsonRpcConfig;
-}
-
-export interface JsonRpcModuleAsyncOptions {
-    imports: any[];
-    useExisting: Type<JsonRpcOptionsFactory>;
-    useClass: Type<JsonRpcOptionsFactory>;
-    useFactory: (...args: any[]) => Promise<JsonRpcConfig> | JsonRpcConfig;
-    inject: any[];
-}
+import { JsonRpcOptionsFactory } from './interfaces/json-rpc-options-factory';
+import { JsonRpcConfig } from './interfaces/json-rpc-config';
+import { JsonRpcModuleAsyncOptions } from './interfaces/json-rpc-module-async-options';
 
 const JSON_RPC_OPTIONS = '__JSON_RPC_OPTIONS__';
 
@@ -61,7 +48,7 @@ export class JsonRpcModule implements OnModuleInit {
         };
     }
 
-    private static createAsyncProvider(options: JsonRpcModuleAsyncOptions) {
+    private static createAsyncProvider(options: JsonRpcModuleAsyncOptions): Provider[] {
         if (options.useExisting || options.useFactory) {
             return [this.createAsyncOptionsProvider(options)];
         }
@@ -74,7 +61,7 @@ export class JsonRpcModule implements OnModuleInit {
         ];
     }
 
-    private static createAsyncOptionsProvider(options: JsonRpcModuleAsyncOptions) {
+    private static createAsyncOptionsProvider(options: JsonRpcModuleAsyncOptions): Provider {
         if (options.useFactory) {
             return {
                 provide: JSON_RPC_OPTIONS,

@@ -1,4 +1,4 @@
-import { Controller, PipeTransform, Transform } from '@nestjs/common/interfaces';
+import { Controller, PipeTransform } from '@nestjs/common/interfaces';
 import { GuardsConsumer } from '@nestjs/core/guards/guards-consumer';
 import { GuardsContextCreator } from '@nestjs/core/guards/guards-context-creator';
 import { InterceptorsConsumer } from '@nestjs/core/interceptors/interceptors-consumer';
@@ -8,7 +8,7 @@ import { PipesContextCreator } from '@nestjs/core/pipes/pipes-context-creator';
 import { IRouteParamsFactory } from '@nestjs/core/router/interfaces/route-params-factory.interface';
 import { HandlerMetadata, HandlerMetadataStorage } from '@nestjs/core/helpers/handler-metadata-storage';
 import { ContextUtils } from '@nestjs/core/helpers/context-utils';
-import { ForbiddenException, RouteParamsMetadata } from '@nestjs/common';
+import { ForbiddenException, RouteParamMetadata } from '@nestjs/common';
 import { STATIC_CONTEXT } from '@nestjs/core/injector/constants';
 import { CUSTOM_ROUTE_AGRS_METADATA, ROUTE_ARGS_METADATA } from '@nestjs/common/constants';
 import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
@@ -163,7 +163,7 @@ export class JsonRpcContextCreator {
 
     public exchangeKeysForValues(
         keys: string[],
-        metadata: RouteParamsMetadata,
+        metadata: RouteParamMetadata,
         moduleContext: string,
         contextId = STATIC_CONTEXT,
         inquirerId?: string,

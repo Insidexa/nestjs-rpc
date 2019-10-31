@@ -8,3 +8,5 @@ export * from './exception/rpc-parse.exception';
 
 export * from './decorators';
 export * from './json-rpc.module';
+export { JsonRpcConfig } from './interfaces/json-rpc-config';
+export { JsonRpcModuleAsyncOptions } from './interfaces/json-rpc-module-async-options';
