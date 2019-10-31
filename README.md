@@ -1,4 +1,6 @@
-NestJS JSON RPC package
+NestJS JSON RPC package - [nestjs-json-rpc](https://www.npmjs.com/package/@jashkasoft/nestjs-json-rpc) npm package
+
+`npm i --save @jashkasoft/nestjs-json-rpc`
 
 Implemented JSON RPC [specification](https://www.jsonrpc.org/specification)
 
@@ -35,7 +37,7 @@ export class TestHandler implements IRpcHandler<Payload> {
  - add `TestHandler` to providers array  
 
 
-See examples in src/examples
+See examples in tests
 
 How to use  
 Example simple request to handler:  
