@@ -15,8 +15,8 @@ import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
 import { isFunction, isString } from '@nestjs/common/utils/shared.utils';
 import { FORBIDDEN_MESSAGE } from '@nestjs/core/guards/constants';
 import { ParamProperties } from '@nestjs/core/router/router-execution-context';
+import { Fn } from '../types';
 
-type Fn = (...args) => any;
 const response = null;
 
 export class JsonRpcContextCreator {

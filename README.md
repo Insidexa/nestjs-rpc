@@ -16,8 +16,7 @@ How to use:
  
  - create rpc handler  
 ```typescript
-import { IRpcHandler, RpcHandler } from '../src/rpc/rpc-explorer';
-import { RpcId, RpcPayload, RpcVersion, RpcMethod } from '../src/rpc/decorators';
+import { RpcId, RpcPayload, RpcVersion, RpcMethod, IRpcHandler, RpcHandler } from '@jashkasoft/nestjs-json-rpc';
 
 @RpcHandler({
     method: 'test',
@@ -40,13 +39,26 @@ export class TestHandler implements IRpcHandler<Payload> {
 See examples in tests
 
 How to use  
-Example simple request to handler:  
-request --> `curl -X POST "http://localhost:3002/rpc" -H "accept: application/json" -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "method": "example", "params": 2}'`  
-response <-- `{"jsonrpc":"2.0","result":2,"id":null}`
+Example simple request to handler  
+request:
+```bash
+curl -X POST "http://localhost:3002/rpc" -H "accept: application/json" -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "method": "example", "params": 2}'
+```  
+
+response:  
+```json
+{"jsonrpc":"2.0","result":2,"id":null}
+```
 
 Batch requests  
-request --> `curl -X POST "http://localhost:3002/rpc" -H "accept: application/json" -H "Content-Type: application/json" -d '[{"jsonrpc": "2.0", "method": "example", "params": 2}, { "jsonrpc": "2.0", "method": "test" }]'`  
-response <-- `[{"jsonrpc":"2.0","result":2,"id":null}]`
+request:  
+```bash
+curl -X POST "http://localhost:3002/rpc" -H "accept: application/json" -H "Content-Type: application/json" -d '[{"jsonrpc": "2.0", "method": "example", "params": 2}, { "jsonrpc": "2.0", "method": "test" }]'
+```  
+response:  
+```json
+[{"jsonrpc":"2.0","result":2,"id":null}]
+```
 
  
  

@@ -1,6 +1,6 @@
 {
   "name": "@jashkasoft/nestjs-json-rpc",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "RPC module for NestJS framework",
   "author": "jashka",
   "main": "dist/index.js",
