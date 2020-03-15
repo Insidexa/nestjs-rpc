@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AbstractHttpAdapter, ModuleRef } from '@nestjs/core';
-import { JsonRpcConfig } from './json-rpc.module';
 import { NextFunction, Request } from 'express';
-import { RpcHandlerInfo } from './json-rpc-explorer';
 import { isEqual, sortBy } from 'lodash';
 import { JsonRpcProxy } from './context/json-rpc-proxy';
 import { PipesContextCreator } from '@nestjs/core/pipes/pipes-context-creator';
@@ -19,16 +17,16 @@ import { RouterExceptionFilters } from '@nestjs/core/router/router-exception-fil
 import { JsonRpcContextCreator } from './context/json-rpc-context-creator';
 import { ServerResponse } from 'http';
 import { RpcException } from './exception/json-rpc.exception';
-import { RpcErrorInterface } from './interfaces/rpc-error.interface';
-import { RpcResultInterface } from './interfaces/rpc-result.interface';
-import { RpcRequestInterface } from './interfaces/rpc-request.interface';
 import { RpcInvalidRequestException } from './exception/rpc-invalid-request.exception';
 import { RpcMethodNotFoundException } from './exception/rpc-method-not-found.exception';
-
-type RpcRequest = RpcRequestInterface | RpcRequestInterface[];
-type RpcResult = RpcResultInterface | RpcResultInterface[];
-type RpcResponse = RpcRequest | RpcResult;
-type Response = Array<RpcResultInterface | RpcErrorInterface | null>;
+import {
+    JsonRpcConfig,
+    RpcErrorInterface,
+    RpcHandlerInfo,
+    RpcRequestInterface,
+    RpcResultInterface,
+} from './interfaces';
+import { Response, RpcRequest, RpcResponse } from './types';
 
 @Injectable()
 export class JsonRpcServer {
@@ -88,33 +86,41 @@ export class JsonRpcServer {
 
     private onRequest(request: Request, response: ServerResponse, next: NextFunction) {
         if (Array.isArray(request.body)) {
-            const batch = request.body as RpcRequestInterface[];
-            if (batch.length === 0) {
-                this.sendResponse(
-                    response,
-                    this.wrapRPCError(
-                        {},
-                        new RpcInvalidRequestException(),
-                    ),
-                );
-            } else {
-                const requests = batch.map(body => {
-                    return this.lifecycle({ ...request, body } as Request, response, next);
-                });
+            this.batchRequest(request, response, next);
 
-                forkJoin(...requests)
-                    .subscribe((results: Response) => {
-                        const responses = results.filter(result => {
-                            return result && result.id !== undefined;
-                        });
-                        this.sendResponse(response, responses.length === 0 ? undefined : responses);
-                    });
-            }
-        } else {
-            this.lifecycle(request, response, next).subscribe(result => {
-                this.sendResponse(response, request.body.id ? result : undefined);
-            });
+            return;
         }
+
+        this.lifecycle(request, response, next).subscribe(result => {
+            this.sendResponse(response, request.body.id ? result : undefined);
+        });
+    }
+
+    private batchRequest(request: Request, response: ServerResponse, next: NextFunction) {
+        const batch = request.body as RpcRequestInterface[];
+        if (batch.length === 0) {
+            this.sendResponse(
+                response,
+                this.wrapRPCError(
+                    {},
+                    new RpcInvalidRequestException(),
+                ),
+            );
+
+            return;
+        }
+
+        const requests = batch.map(body => {
+            return this.lifecycle({ ...request, body } as Request, response, next);
+        });
+
+        forkJoin(...requests)
+            .subscribe((results: Response) => {
+                const responses = results.filter(result => {
+                    return result && result.id !== undefined;
+                });
+                this.sendResponse(response, responses.length === 0 ? undefined : responses);
+            });
     }
 
     private sendResponse(response: ServerResponse, result?: RpcResponse) {
@@ -177,20 +183,24 @@ export class JsonRpcServer {
     }
 
     private wrapRPCResponse({ jsonrpc, id, method }: RpcRequestInterface, result = null): RpcResultInterface {
-        if (id === undefined) {
-            return { jsonrpc, method };
-        }
-        return { jsonrpc, result, id };
+        return {
+            jsonrpc,
+            result,
+            ...(id && { id, result }),
+            ...(id === undefined && { method }),
+        };
     }
 
     private wrapRPCError(
         { jsonrpc = '2.0', method, id }: Partial<RpcRequestInterface>,
         error: RpcException,
     ): RpcErrorInterface {
-        if (id === undefined) {
-            return { jsonrpc, method, error, id: null };
-        }
-        return { jsonrpc, error, id };
+        return {
+            jsonrpc,
+            error,
+            ...(id === undefined && { method, id: null }),
+            ...(id && { id }),
+        };
     }
 
     private assertRPCStructure(body: RpcRequest): RpcRequest {
@@ -205,7 +215,7 @@ export class JsonRpcServer {
         return body;
     }
 
-    private assertStructure(operation: RpcRequestInterface): boolean {
+    private assertStructure(operation: RpcRequestInterface) {
         const keys = Object.keys(operation).filter(key => {
             return this.ignoreKeys.includes(key) === false;
         });
@@ -214,7 +224,7 @@ export class JsonRpcServer {
             && typeof operation.method === 'string';
 
         if (isValidStructure) {
-            return true;
+            return;
         }
 
         throw new RpcInvalidRequestException();

@@ -1,23 +1,8 @@
-import { DynamicModule, Inject, Module, OnModuleInit, Type } from '@nestjs/common';
+import { DynamicModule, Inject, Module, OnModuleInit } from '@nestjs/common';
 import { HttpAdapterHost, ModulesContainer } from '@nestjs/core';
 import { JsonRpcServer } from './json-rpc-server';
-import { JsonRpcExplorer, RpcHandlerInfo } from './json-rpc-explorer';
-
-export interface JsonRpcConfig {
-    path: string;
-}
-
-export interface JsonRpcOptionsFactory {
-    createJsonRpcOptions(): Promise<JsonRpcConfig> | JsonRpcConfig;
-}
-
-export interface JsonRpcModuleAsyncOptions {
-    imports: any[];
-    useExisting: Type<JsonRpcOptionsFactory>;
-    useClass: Type<JsonRpcOptionsFactory>;
-    useFactory: (...args: any[]) => Promise<JsonRpcConfig> | JsonRpcConfig;
-    inject: any[];
-}
+import { JsonRpcExplorer} from './json-rpc-explorer';
+import { JsonRpcConfig, JsonRpcModuleAsyncOptions, JsonRpcOptionsFactory, RpcHandlerInfo } from './interfaces';
 
 const JSON_RPC_OPTIONS = '__JSON_RPC_OPTIONS__';
 

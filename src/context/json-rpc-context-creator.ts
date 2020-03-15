@@ -1,4 +1,4 @@
-import { Controller, PipeTransform, Transform } from '@nestjs/common/interfaces';
+import { Controller, PipeTransform } from '@nestjs/common/interfaces';
 import { GuardsConsumer } from '@nestjs/core/guards/guards-consumer';
 import { GuardsContextCreator } from '@nestjs/core/guards/guards-context-creator';
 import { InterceptorsConsumer } from '@nestjs/core/interceptors/interceptors-consumer';
@@ -15,8 +15,8 @@ import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
 import { isFunction, isString } from '@nestjs/common/utils/shared.utils';
 import { FORBIDDEN_MESSAGE } from '@nestjs/core/guards/constants';
 import { ParamProperties } from '@nestjs/core/router/router-execution-context';
+import { Fn } from '../types';
 
-type Fn = (...args) => any;
 const response = null;
 
 export class JsonRpcContextCreator {

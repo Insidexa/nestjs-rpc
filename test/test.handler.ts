@@ -1,5 +1,4 @@
-import { IRpcHandler, RpcHandler } from '../src/json-rpc-explorer';
-import { RpcId, RpcMethod, RpcPayload, RpcVersion } from '../src';
+import { RpcHandler, RpcId, RpcMethod, RpcPayload, RpcVersion, IRpcHandler } from '../src';
 
 @RpcHandler({
     method: 'test',

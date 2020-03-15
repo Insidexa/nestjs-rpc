@@ -6,5 +6,6 @@ export * from './exception/rpc-invalid-request.exception';
 export * from './exception/rpc-method-not-found.exception';
 export * from './exception/rpc-parse.exception';
 
-export * from './decorators';
+export * from './context/decorators';
 export * from './json-rpc.module';
+export { IRpcHandler, JsonRpcConfig, JsonRpcOptionsFactory, JsonRpcModuleAsyncOptions } from './interfaces';
