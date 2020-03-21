@@ -1,22 +1,25 @@
-import { createParamDecorator, SetMetadata } from '@nestjs/common';
-import { Request } from 'express';
+import { createParamDecorator, ExecutionContext, SetMetadata } from '@nestjs/common';
 import { RpcMetadata } from '../interfaces';
 
 export const RpcMetadataKey = '__rpc-metadata__';
 
-export const RpcPayload = createParamDecorator((data, req: Request) => {
+export const RpcPayload = createParamDecorator((data, ctx: ExecutionContext) => {
+    const req = ctx.switchToHttp().getRequest();
     return req.body.params;
 });
 
-export const RpcId = createParamDecorator((data, req) => {
+export const RpcId = createParamDecorator((data, ctx: ExecutionContext) => {
+    const req = ctx.switchToHttp().getRequest();
     return req.body.id || null;
 });
 
-export const RpcVersion = createParamDecorator((data, req) => {
+export const RpcVersion = createParamDecorator((data, ctx: ExecutionContext) => {
+    const req = ctx.switchToHttp().getRequest();
     return req.body.jsonrpc;
 });
 
-export const RpcMethod = createParamDecorator((data, req) => {
+export const RpcMethod = createParamDecorator((data, ctx: ExecutionContext) => {
+    const req = ctx.switchToHttp().getRequest();
     return req.body.method;
 });
 

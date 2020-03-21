@@ -5,7 +5,7 @@ NestJS JSON RPC package - [nestjs-json-rpc](https://www.npmjs.com/package/@jashk
 Implemented JSON RPC [specification](https://www.jsonrpc.org/specification)
 
 How to use:
- - import module `RpcModule`, example  
+ - import module `RpcModule` from `@jashkasoft/nestjs-json-rpc`, example  
 ```typescript
         JsonRpcModule.forRoot({
             path: '/rpc', // path to RPC
@@ -77,3 +77,11 @@ Exception filters, Interceptors and Guards (as in the HTTP app).
 Because RPCModule in rpc batch request collect responses from handlers
 and if you using response you override headers or send response in some handlers.
 Maybe, you can receive errors, for example `headers already sent`.  
+
+
+#####Changelog versions:  
+
+`7.0.0`
+ - support nestjs 7.0.0
+ - fix types
+ - add to decorators ExecutionContext ( breaking change )

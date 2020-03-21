@@ -27,28 +27,4 @@ export class JsonRpcProxy {
             }
         };
     }
-
-    public createExceptionLayerProxy(
-        targetCallback: <TError, TRequest, TResponse>(
-            err: TError,
-            req: TRequest,
-            res: TResponse,
-            next: () => void,
-        ) => void,
-        exceptionsHandler: ExceptionsHandler,
-    ) {
-        return async <TError, TRequest, TResponse>(
-            err: TError,
-            req: TRequest,
-            res: TResponse,
-            next: () => void,
-        ) => {
-            try {
-                await targetCallback(err, req, res, next);
-            } catch (e) {
-                const host = new ExecutionContextHost([ req, null ]);
-                exceptionsHandler.next(e, host);
-            }
-        };
-    }
 }
