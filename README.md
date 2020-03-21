@@ -1,5 +1,7 @@
 NestJS JSON RPC package - [nestjs-json-rpc](https://www.npmjs.com/package/@jashkasoft/nestjs-json-rpc) npm package
 
+![Build](https://github.com/Insidexa/nestjs-rpc/workflows/Build/badge.svg)
+
 `npm i --save @jashkasoft/nestjs-json-rpc`
 
 Implemented JSON RPC [specification](https://www.jsonrpc.org/specification)
