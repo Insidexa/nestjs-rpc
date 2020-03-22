@@ -38,31 +38,7 @@ export class TestHandler implements IRpcHandler<Payload> {
  - add `TestHandler` to providers array  
 
 
-See examples in tests
-
-How to use  
-Example simple request to handler  
-request:
-```bash
-curl -X POST "http://localhost:3002/rpc" -H "accept: application/json" -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "method": "example", "params": 2}'
-```  
-
-response:  
-```json
-{"jsonrpc":"2.0","result":2,"id":null}
-```
-
-Batch requests  
-request:  
-```bash
-curl -X POST "http://localhost:3002/rpc" -H "accept: application/json" -H "Content-Type: application/json" -d '[{"jsonrpc": "2.0", "method": "example", "params": 2}, { "jsonrpc": "2.0", "method": "test" }]'
-```  
-response:  
-```json
-[{"jsonrpc":"2.0","result":2,"id":null}]
-```
-
- 
+See examples in samples folder
  
 Fields description
 
@@ -82,6 +58,9 @@ Maybe, you can receive errors, for example `headers already sent`.
 
 
 ##### Changelog versions:  
+
+`7.1.1`
+ - add express engine example
 
 `7.1.0`
  - add support fastify adapter
