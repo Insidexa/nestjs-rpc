@@ -1,5 +1,5 @@
 import { DynamicModule, Inject, Module, OnModuleInit, Provider } from '@nestjs/common';
-import { HttpAdapterHost, ModulesContainer } from '@nestjs/core';
+import { ModulesContainer } from '@nestjs/core';
 import { JsonRpcServer } from './json-rpc-server';
 import { JsonRpcExplorer} from './json-rpc-explorer';
 import { JsonRpcConfig, JsonRpcModuleAsyncOptions, JsonRpcOptionsFactory, RpcHandlerInfo } from './interfaces';
@@ -9,7 +9,6 @@ const JSON_RPC_OPTIONS = '__JSON_RPC_OPTIONS__';
 @Module({})
 export class JsonRpcModule implements OnModuleInit {
     constructor(
-        private httpAdapterHost: HttpAdapterHost,
         private rpcServer: JsonRpcServer,
         private rpcExplorer: JsonRpcExplorer,
         @Inject(JSON_RPC_OPTIONS) private config: JsonRpcConfig,
@@ -83,9 +82,7 @@ export class JsonRpcModule implements OnModuleInit {
                 .map(handler => ({...handler, id: moduleKey}));
             handlers.push(...moduleHandlers);
         });
-        const { httpAdapter } = this.httpAdapterHost;
         this.rpcServer.run(
-            httpAdapter,
             handlers,
             this.config,
         );

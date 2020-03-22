@@ -81,7 +81,10 @@ and if you using response you override headers or send response in some handlers
 Maybe, you can receive errors, for example `headers already sent`.  
 
 
-#####Changelog versions:  
+##### Changelog versions:  
+
+`7.1.0`
+ - add support fastify adapter
 
 `7.0.0`
  - support nestjs 7.0.0

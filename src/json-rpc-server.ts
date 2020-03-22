@@ -1,8 +1,7 @@
-import { Injectable } from '@nestjs/common';
-import { AbstractHttpAdapter, ApplicationConfig, ModuleRef } from '@nestjs/core';
-import { NextFunction, Request } from 'express';
+import { HttpStatus, Injectable } from '@nestjs/common';
+import { ApplicationConfig, HttpAdapterHost, ModuleRef, NestContainer } from '@nestjs/core';
 import { isEqual, sortBy } from 'lodash';
-import { JsonRpcProxy } from './context/json-rpc-proxy';
+import { JsonRpcProxy, RouterProxyCallback } from './context/json-rpc-proxy';
 import { PipesContextCreator } from '@nestjs/core/pipes/pipes-context-creator';
 import { PipesConsumer } from '@nestjs/core/pipes/pipes-consumer';
 import { GuardsContextCreator } from '@nestjs/core/guards/guards-context-creator';
@@ -15,7 +14,6 @@ import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { RouteParamsFactory } from '@nestjs/core/router/route-params-factory';
 import { RouterExceptionFilters } from '@nestjs/core/router/router-exception-filters';
 import { JsonRpcContextCreator } from './context/json-rpc-context-creator';
-import { ServerResponse } from 'http';
 import { RpcException } from './exception/json-rpc.exception';
 import { RpcInvalidRequestException } from './exception/rpc-invalid-request.exception';
 import { RpcMethodNotFoundException } from './exception/rpc-method-not-found.exception';
@@ -32,7 +30,7 @@ import { Response, RpcRequest, RpcResponse } from './types';
 export class JsonRpcServer {
     private needKeys = ['jsonrpc', 'method'];
     private ignoreKeys = ['params', 'id'];
-    private handlers = new Map<string, any>();
+    private handlers = new Map<string, RouterProxyCallback>();
     private executionContextCreator: JsonRpcContextCreator;
     private exceptionsFilter: RouterExceptionFilters;
     private routerProxy = new JsonRpcProxy();
@@ -40,9 +38,10 @@ export class JsonRpcServer {
     constructor(
         private moduleRef: ModuleRef,
         private config: ApplicationConfig,
+        private httpAdapterHost: HttpAdapterHost,
     ) {
         const module = moduleRef as any;
-        const container = module.container;
+        const container = module.container as NestContainer;
         this.executionContextCreator = new JsonRpcContextCreator(
             new RouteParamsFactory(),
             new PipesContextCreator(container, this.config),
@@ -60,7 +59,6 @@ export class JsonRpcServer {
     }
 
     public run(
-        httpAdapter: AbstractHttpAdapter,
         handlers: RpcHandlerInfo[],
         config: JsonRpcConfig,
     ) {
@@ -80,11 +78,10 @@ export class JsonRpcServer {
             this.handlers.set(method, proxy);
         }
 
-        const httpInstance = httpAdapter.getInstance();
-        httpInstance.post(config.path, this.onRequest.bind(this));
+        this.httpAdapterHost.httpAdapter.post(config.path, this.onRequest.bind(this));
     }
 
-    private onRequest(request: Request, response: ServerResponse, next: NextFunction) {
+    private onRequest<TRequest extends any, TResponse = any>(request: TRequest, response: TResponse, next: () => void) {
         if (Array.isArray(request.body)) {
             this.batchRequest(request, response, next);
 
@@ -96,7 +93,7 @@ export class JsonRpcServer {
         });
     }
 
-    private batchRequest(request: Request, response: ServerResponse, next: NextFunction) {
+    private batchRequest<TRequest extends any, TResponse = any>(request: TRequest, response: TResponse, next: () => void) {
         const batch = request.body as RpcRequestInterface[];
         if (batch.length === 0) {
             this.sendResponse(
@@ -111,7 +108,7 @@ export class JsonRpcServer {
         }
 
         const requests = batch.map(body => {
-            return this.lifecycle({ ...request, body } as Request, response, next);
+            return this.lifecycle({ ...request, body }, response, next);
         });
 
         forkJoin(...requests)
@@ -123,13 +120,16 @@ export class JsonRpcServer {
             });
     }
 
-    private sendResponse(response: ServerResponse, result?: RpcResponse) {
-        response.statusCode = 200;
-        response.setHeader('Content-Type', 'application/json');
-        response.end(JSON.stringify(result));
+    private sendResponse(response: any, result?: RpcResponse) {
+        this.httpAdapterHost.httpAdapter.setHeader(response,'Content-Type', 'application/json');
+        this.httpAdapterHost.httpAdapter.reply(
+            response,
+            JSON.stringify(result),
+            HttpStatus.OK,
+        );
     }
 
-    private lifecycle(request: Request, response: ServerResponse, next: NextFunction): Observable<RpcResponse> {
+    private lifecycle<TRequest extends any, TResponse = any>(request: TRequest, response: TResponse, next: () => void): Observable<RpcResponse> {
         return of<RpcRequestInterface>(request.body as RpcRequestInterface)
             .pipe(
                 tap(body => this.assertRPCStructure(body)),
@@ -140,12 +140,11 @@ export class JsonRpcServer {
                 }),
                 switchMap(body => this.resolveWaitingResponse(body, request, response, next)),
                 catchError(err => of(err)),
-                map(result => this.resolveResponseOrNullIfNotification(result, request)),
+                map(result => this.resolveResponseOrNullIfNotification(result, request.body)),
             );
     }
 
-    private resolveResponseOrNullIfNotification(result, request: Request) {
-        const { body } = request;
+    private resolveResponseOrNullIfNotification(result: any, body: RpcRequestInterface) {
         if ((result instanceof RpcException) === false && body.id) {
             return this.wrapRPCResponse(body, result);
         }
@@ -160,7 +159,12 @@ export class JsonRpcServer {
         return this.wrapRPCError(body, result);
     }
 
-    private resolveWaitingResponse(body: RpcRequestInterface, request: Request, response: ServerResponse, next: NextFunction) {
+    private resolveWaitingResponse<TRequest = any, TResponse = any>(
+        body: RpcRequestInterface,
+        request: TRequest,
+        response: TResponse,
+        next: () => void,
+    ) {
         const { method, id } = body;
         if (id === undefined) {
             this.handlers.get(method)(request, response, next);

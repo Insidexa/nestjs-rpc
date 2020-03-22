@@ -5,7 +5,7 @@ export type RouterProxyCallback = <TRequest, TResponse>(
     req?: TRequest,
     res?: TResponse,
     next?: () => void,
-) => void;
+) => unknown;
 
 export class JsonRpcProxy {
     public createProxy(

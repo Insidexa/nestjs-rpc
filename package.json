@@ -15,14 +15,15 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest"
   },
   "dependencies": {
+    "lodash": "^4.17.15"
+  },
+  "devDependencies": {
     "@nestjs/common": "^7.0.0",
     "@nestjs/core": "^7.0.0",
     "@nestjs/platform-express": "^7.0.0",
-    "lodash": "^4.17.15",
+    "@nestjs/platform-fastify": "^7.0.0",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^6.5.4"
-  },
-  "devDependencies": {
+    "rxjs": "^6.5.4",
     "@nestjs/testing": "^7.0.0",
     "@types/express": "^4.17.3",
     "@types/jest": "^24.9.1",

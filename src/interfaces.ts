@@ -7,7 +7,7 @@ export interface IRpcHandler<T> {
 export interface RpcErrorInterface {
     jsonrpc: string;
     error?: any;
-    method?: any;
+    method?: string | undefined;
     id?: number | string | null | undefined;
 }
 
@@ -21,7 +21,7 @@ export interface RpcRequestInterface {
 export interface RpcResultInterface {
     jsonrpc: string;
     result?: any;
-    method?: string;
+    method?: string | undefined;
     id?: number | string | null | undefined;
 }
 
