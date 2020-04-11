@@ -7,5 +7,5 @@ export * from './exception/rpc-method-not-found.exception';
 export * from './exception/rpc-parse.exception';
 
 export * from './context/decorators';
-export * from './json-rpc.module';
 export { IRpcHandler, JsonRpcConfig, JsonRpcOptionsFactory, JsonRpcModuleAsyncOptions } from './interfaces';
+export { JsonRpcModule } from './json-rpc.module';

@@ -1,22 +1,18 @@
-import { Injectable } from '@nestjs/common';
-import { compact, flattenDeep } from 'lodash';
+import { compact } from 'lodash';
 import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
 import { Injectable as IInjectable } from '@nestjs/common/interfaces';
 import { RpcMetadataKey } from './context/decorators';
 import { IRpcHandler, RpcHandlerInfo } from './interfaces';
 
-@Injectable()
 export class JsonRpcExplorer {
-    public exploreProviders(components: Map<any, InstanceWrapper<IInjectable>>): RpcHandlerInfo[] {
-        return compact(flattenDeep(
-            Array.from(components).map(component =>
-                [ ...component.values() ]
-                    .map(({ instance }) => this.filterCommands(instance as IRpcHandler<any>)),
-            ),
-        ));
+    public static exploreProviders(components: Map<any, InstanceWrapper<IInjectable>>): InstanceWrapper<IRpcHandler>[] {
+        return compact([ ...components.values() ].map(instanceWrapper => {
+            return this.filterCommands(instanceWrapper);
+        }));
     }
 
-    protected filterCommands(instance: IRpcHandler<any>) {
+    protected static filterCommands(instanceWrapper: InstanceWrapper): InstanceWrapper<RpcHandlerInfo> {
+        const { instance } = instanceWrapper;
         if (!instance) {
             return;
         }
@@ -27,6 +23,6 @@ export class JsonRpcExplorer {
             return;
         }
 
-        return { ...metadata, instance };
+        return instanceWrapper;
     }
 }

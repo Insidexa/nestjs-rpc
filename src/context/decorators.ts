@@ -1,4 +1,11 @@
-import { createParamDecorator, ExecutionContext, SetMetadata } from '@nestjs/common';
+import {
+    applyDecorators,
+    createParamDecorator,
+    ExecutionContext,
+    Injectable,
+    InjectableOptions,
+    SetMetadata
+} from '@nestjs/common';
 import { RpcMetadata } from '../interfaces';
 
 export const RpcMetadataKey = '__rpc-metadata__';
@@ -23,4 +30,9 @@ export const RpcMethod = createParamDecorator((data, ctx: ExecutionContext) => {
     return req.body.method;
 });
 
-export const RpcHandler = (metadata: RpcMetadata) => SetMetadata(RpcMetadataKey, metadata);
+export const RpcHandler = ({ scope, ...metadata }: RpcMetadata & InjectableOptions) => {
+    return applyDecorators(
+        SetMetadata(RpcMetadataKey, metadata),
+        Injectable({ scope }),
+    );
+};

@@ -1,6 +1,7 @@
 import { Type } from '@nestjs/common';
+import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
 
-export interface IRpcHandler<T> {
+export interface IRpcHandler<T = unknown> {
     invoke(...args);
 }
 
@@ -47,6 +48,6 @@ export interface RpcMetadata {
 
 export interface RpcHandlerInfo {
     method: string;
-    id: string;
-    instance: IRpcHandler<any>;
+    moduleKey: string;
+    instanceWrapper: InstanceWrapper<IRpcHandler>;
 }

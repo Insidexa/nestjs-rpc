@@ -1,8 +1,10 @@
 import { DynamicModule, Inject, Module, OnModuleInit, Provider } from '@nestjs/common';
-import { ModulesContainer } from '@nestjs/core';
+import { ApplicationConfig, HttpAdapterHost, ModuleRef, NestContainer } from '@nestjs/core';
 import { JsonRpcServer } from './json-rpc-server';
-import { JsonRpcExplorer} from './json-rpc-explorer';
-import { JsonRpcConfig, JsonRpcModuleAsyncOptions, JsonRpcOptionsFactory, RpcHandlerInfo } from './interfaces';
+import { JsonRpcConfig, JsonRpcModuleAsyncOptions, JsonRpcOptionsFactory } from './index';
+import { RpcRoutesResolver } from './rpc-routes-resolver';
+import { Injector } from '@nestjs/core/injector/injector';
+import { validatePath } from '@nestjs/common/utils/shared.utils';
 
 const JSON_RPC_OPTIONS = '__JSON_RPC_OPTIONS__';
 
@@ -10,9 +12,10 @@ const JSON_RPC_OPTIONS = '__JSON_RPC_OPTIONS__';
 export class JsonRpcModule implements OnModuleInit {
     constructor(
         private rpcServer: JsonRpcServer,
-        private rpcExplorer: JsonRpcExplorer,
         @Inject(JSON_RPC_OPTIONS) private config: JsonRpcConfig,
-        private modulesContainer: ModulesContainer,
+        private moduleRef: ModuleRef,
+        private nestConfig: ApplicationConfig,
+        private httpAdapterHost: HttpAdapterHost,
     ) {
     }
 
@@ -26,7 +29,6 @@ export class JsonRpcModule implements OnModuleInit {
                     useValue: config,
                 },
                 JsonRpcServer,
-                JsonRpcExplorer,
             ],
             exports: [],
             controllers: [],
@@ -39,7 +41,6 @@ export class JsonRpcModule implements OnModuleInit {
             imports: options.imports || [],
             providers: [
                 JsonRpcServer,
-                JsonRpcExplorer,
                 ...this.createAsyncProvider(options),
             ],
         };
@@ -74,17 +75,20 @@ export class JsonRpcModule implements OnModuleInit {
         };
     }
 
-    public onModuleInit() {
-        const handlers: RpcHandlerInfo[] = [];
-        this.modulesContainer.forEach((module, moduleKey) => {
-            const moduleHandlers = this.rpcExplorer
-                .exploreProviders(module.providers)
-                .map(handler => ({...handler, id: moduleKey}));
-            handlers.push(...moduleHandlers);
-        });
-        this.rpcServer.run(
-            handlers,
+    public async onModuleInit() {
+        const { container, injector } = (this.moduleRef as any) as {
+            container: NestContainer,
+            injector: Injector,
+        };
+        const routesResolver = new RpcRoutesResolver(
+            container,
+            this.nestConfig,
+            injector,
             this.config,
         );
+        const prefix = this.nestConfig.getGlobalPrefix();
+        const basePath = validatePath(prefix);
+        const rpcHandlers = routesResolver.resolve(this.httpAdapterHost.httpAdapter, basePath);
+        this.rpcServer.run(rpcHandlers, this.config);
     }
 }

@@ -1,5 +1,5 @@
 {
-  "name": "fastify-engine",
+  "name": "request-scoped",
   "version": "0.0.1",
   "description": "",
   "author": "",
@@ -25,7 +25,6 @@
     "@nestjs/common": "^7.0.0",
     "@nestjs/core": "^7.0.0",
     "@nestjs/platform-express": "^7.0.0",
-    "@nestjs/platform-fastify": "^7.0.4",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^6.5.4"

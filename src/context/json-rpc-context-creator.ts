@@ -17,7 +17,14 @@ import { FORBIDDEN_MESSAGE } from '@nestjs/core/guards/constants';
 import { ParamProperties } from '@nestjs/core/router/router-execution-context';
 import { Fn } from '../types';
 import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-host';
+import { IRpcHandler } from '../interfaces';
 
+/**
+ * Response set to null because
+ * RPCModule in rpc batch request collect responses from handlers
+ * and if you using response you override headers or send response in some handlers.
+ * Maybe, you can receive errors, for example `headers already sent`.
+ */
 const response = null;
 
 export class JsonRpcContextCreator {
@@ -36,14 +43,14 @@ export class JsonRpcContextCreator {
     }
 
     public create<TContext extends string = ContextType>(
-        instance: Controller,
+        instance: IRpcHandler,
         callback: (...args: unknown[]) => unknown,
         methodName: string,
         module: string,
         contextId = STATIC_CONTEXT,
         inquirerId?: string,
-        contextType: TContext = 'http' as TContext,
     ) {
+        const contextType: ContextType = 'http';
         const {
             argsLength,
             fnHandleResponse,

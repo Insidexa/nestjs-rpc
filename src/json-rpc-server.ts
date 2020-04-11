@@ -1,82 +1,38 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { ApplicationConfig, HttpAdapterHost, ModuleRef, NestContainer } from '@nestjs/core';
+import {
+    HttpAdapterHost,
+} from '@nestjs/core';
 import { isEqual, sortBy } from 'lodash';
-import { JsonRpcProxy, RouterProxyCallback } from './context/json-rpc-proxy';
-import { PipesContextCreator } from '@nestjs/core/pipes/pipes-context-creator';
-import { PipesConsumer } from '@nestjs/core/pipes/pipes-consumer';
-import { GuardsContextCreator } from '@nestjs/core/guards/guards-context-creator';
-import { GuardsConsumer } from '@nestjs/core/guards/guards-consumer';
-import { InterceptorsContextCreator } from '@nestjs/core/interceptors/interceptors-context-creator';
-import { InterceptorsConsumer } from '@nestjs/core/interceptors/interceptors-consumer';
 import { forkJoin, from as fromPromise, Observable, of } from 'rxjs';
 import { isFunction } from '@nestjs/common/utils/shared.utils';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
-import { RouteParamsFactory } from '@nestjs/core/router/route-params-factory';
-import { RouterExceptionFilters } from '@nestjs/core/router/router-exception-filters';
-import { JsonRpcContextCreator } from './context/json-rpc-context-creator';
 import { RpcException } from './exception/json-rpc.exception';
 import { RpcInvalidRequestException } from './exception/rpc-invalid-request.exception';
 import { RpcMethodNotFoundException } from './exception/rpc-method-not-found.exception';
 import {
     JsonRpcConfig,
     RpcErrorInterface,
-    RpcHandlerInfo,
     RpcRequestInterface,
     RpcResultInterface,
 } from './interfaces';
-import { Response, RpcRequest, RpcResponse } from './types';
+import { ProxyCallback, Response, RpcRequest, RpcResponse } from './types';
 
 @Injectable()
 export class JsonRpcServer {
     private needKeys = ['jsonrpc', 'method'];
     private ignoreKeys = ['params', 'id'];
-    private handlers = new Map<string, RouterProxyCallback>();
-    private executionContextCreator: JsonRpcContextCreator;
-    private exceptionsFilter: RouterExceptionFilters;
-    private routerProxy = new JsonRpcProxy();
+    private handlers: Map<string, ProxyCallback>;
 
     constructor(
-        private moduleRef: ModuleRef,
-        private config: ApplicationConfig,
         private httpAdapterHost: HttpAdapterHost,
     ) {
-        const module = moduleRef as any;
-        const container = module.container as NestContainer;
-        this.executionContextCreator = new JsonRpcContextCreator(
-            new RouteParamsFactory(),
-            new PipesContextCreator(container, this.config),
-            new PipesConsumer(),
-            new GuardsContextCreator(container, this.config),
-            new GuardsConsumer(),
-            new InterceptorsContextCreator(container, this.config),
-            new InterceptorsConsumer(),
-        );
-        this.exceptionsFilter = new RouterExceptionFilters(
-            container,
-            this.config,
-            container.getHttpAdapterRef(),
-        );
     }
 
     public run(
-        handlers: RpcHandlerInfo[],
+        handlers: Map<string, ProxyCallback>,
         config: JsonRpcConfig,
     ) {
-        for (const { instance, id, method } of handlers) {
-            const executionContext = this.executionContextCreator.create(
-                instance,
-                instance.invoke,
-                'invoke',
-                id,
-            );
-            const exceptionFilter = this.exceptionsFilter.create(
-                instance,
-                instance.invoke,
-                id,
-            );
-            const proxy = this.routerProxy.createProxy(executionContext, exceptionFilter);
-            this.handlers.set(method, proxy);
-        }
+        this.handlers = handlers;
 
         this.httpAdapterHost.httpAdapter.post(config.path, this.onRequest.bind(this));
     }

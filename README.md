@@ -36,6 +36,10 @@ export class TestHandler implements IRpcHandler<Payload> {
 ```
 
  - add `TestHandler` to providers array  
+ - test with curl  
+   ```bash
+   curl -X POST "http://localhost:3000/rpc" -H "accept: application/json" -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "method": "test", "id": 2}'
+    ```
 
 
 See examples in samples folder
@@ -58,6 +62,10 @@ Maybe, you can receive errors, for example `headers already sent`.
 
 
 ##### Changelog versions:  
+`7.2.0`
+ - add injection scopes ( REQUEST / TRANSIENT ) to JSON RPC handlers
+ - add logging register handlers
+ - add injection scopes sample
 
 `7.1.1`
  - add express engine example
