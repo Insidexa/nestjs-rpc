@@ -1,12 +1,23 @@
-## NestJS JSON RPC package - [nestjs-json-rpc](https://www.npmjs.com/package/@jashkasoft/nestjs-json-rpc) npm package
+# NestJS JSON RPC package - [nestjs-json-rpc](https://www.npmjs.com/package/@jashkasoft/nestjs-json-rpc) npm package
 
 ![Build](https://github.com/Insidexa/nestjs-rpc/workflows/Build/badge.svg)
 
-`npm i --save @jashkasoft/nestjs-json-rpc`
-
 Implemented JSON RPC [specification](https://www.jsonrpc.org/specification)
 
-How to use:
+
+## Contents
+
+- [How to use](#how-to-use)
+- [Decorators description](#decorators-description)
+- [Samples](#samples)
+- [Changelog](#changelog)
+
+
+### How to use
+
+ - Install package  
+   `npm i --save @jashkasoft/nestjs-json-rpc`
+
  - import module `RpcModule` from `@jashkasoft/nestjs-json-rpc`, example  
 ```typescript
         JsonRpcModule.forRoot({
@@ -40,21 +51,23 @@ export class TestHandler implements IRpcHandler<Payload> {
    ```bash
    curl -X POST "http://localhost:3000/rpc" -H "accept: application/json" -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "method": "test", "id": 2}'
     ```
+    
 
-
-See examples in samples folder
- 
-Fields description
+### Decorators description
 
 | field |  decorator |  description | required  | other  |
 |---|---|---|---|---|
-| `params` | `@RpcPayload()`  |  get payload ( params ) | false  |   | 
-| `jsonrpc` | `@RpcVersion()` | get rpc version  | true  |   |   |
-| `method` | `@RpcMethod()` | get rpc version  | true  |   |   |
-| `id` | `@RpcId()`  | get client operation id  | false  | if not send - response not send, RPC notification  |
+| `params` | `@RpcPayload()`  |  get payload ( params ) | false  | use pipes...  | 
+| `jsonrpc` | `@RpcVersion()` | get rpc version  | true  | use pipes...  |  
+| `method` | `@RpcMethod()` | get rpc version  | true  | use pipes...  |  
+| `id` | `@RpcId()`  | get client operation id  | false  | if not send - response not send, RPC notification. use pipes...  |
 
 
-##### Changelog versions:  
+### Samples
+See examples in samples folder
+
+
+### Changelog:  
 `7.3.0`
  - allow response object
  - add custom headers
