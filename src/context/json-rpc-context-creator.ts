@@ -1,4 +1,4 @@
-import { ContextType, Controller, PipeTransform, Type } from '@nestjs/common/interfaces';
+import { ContextType, Controller, HttpServer, PipeTransform, Type } from '@nestjs/common/interfaces';
 import { GuardsConsumer } from '@nestjs/core/guards/guards-consumer';
 import { GuardsContextCreator } from '@nestjs/core/guards/guards-context-creator';
 import { InterceptorsConsumer } from '@nestjs/core/interceptors/interceptors-consumer';
@@ -10,26 +10,22 @@ import { HandlerMetadata, HandlerMetadataStorage } from '@nestjs/core/helpers/ha
 import { ContextUtils } from '@nestjs/core/helpers/context-utils';
 import { ForbiddenException, RouteParamMetadata } from '@nestjs/common';
 import { STATIC_CONTEXT } from '@nestjs/core/injector/constants';
-import { CUSTOM_ROUTE_AGRS_METADATA, ROUTE_ARGS_METADATA } from '@nestjs/common/constants';
+import { CUSTOM_ROUTE_AGRS_METADATA, HEADERS_METADATA, ROUTE_ARGS_METADATA } from '@nestjs/common/constants';
 import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
-import { isFunction, isString } from '@nestjs/common/utils/shared.utils';
+import { isEmpty, isFunction, isString } from '@nestjs/common/utils/shared.utils';
 import { FORBIDDEN_MESSAGE } from '@nestjs/core/guards/constants';
 import { ParamProperties } from '@nestjs/core/router/router-execution-context';
 import { Fn } from '../types';
 import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-host';
 import { IRpcHandler } from '../interfaces';
-
-/**
- * Response set to null because
- * RPCModule in rpc batch request collect responses from handlers
- * and if you using response you override headers or send response in some handlers.
- * Maybe, you can receive errors, for example `headers already sent`.
- */
-const response = null;
+import { JsonRpcResponseController } from './json-rpc-response-controller';
+import { CustomHeader } from '@nestjs/core/router/router-response-controller';
 
 export class JsonRpcContextCreator {
     private readonly handlerMetadataStorage = new HandlerMetadataStorage();
     private readonly contextUtils = new ContextUtils();
+    private readonly responseController: JsonRpcResponseController;
+    private readonly DEFAULT_RESPONSE_CODE = 200;
 
     constructor(
         private readonly paramsFactory: IRouteParamsFactory,
@@ -39,7 +35,9 @@ export class JsonRpcContextCreator {
         private readonly guardsConsumer: GuardsConsumer,
         private readonly interceptorsContextCreator: InterceptorsContextCreator,
         private readonly interceptorsConsumer: InterceptorsConsumer,
+        private readonly applicationRef: HttpServer,
     ) {
+        this.responseController = new JsonRpcResponseController(applicationRef);
     }
 
     public create<TContext extends string = ContextType>(
@@ -56,6 +54,9 @@ export class JsonRpcContextCreator {
             fnHandleResponse,
             paramtypes,
             getParamsMetadata,
+            responseHeaders,
+            hasCustomHeaders,
+            httpStatusCode,
         } = this.getMetadata(instance, callback, methodName, contextType);
 
         const paramsOptions = this.contextUtils.mergeParamsMetatypes(
@@ -106,12 +107,17 @@ export class JsonRpcContextCreator {
         ) => {
             const args = this.contextUtils.createNullArray(argsLength);
             if (fnCanActivate) {
-                await fnCanActivate([ req, response ]);
+                await fnCanActivate([ req, res, next ]);
+            }
+
+            this.responseController.setStatus(res, httpStatusCode);
+            if (hasCustomHeaders === true) {
+                this.responseController.setHeaders(res, responseHeaders);
             }
 
             const result = await this.interceptorsConsumer.intercept(
                 interceptors,
-                [ req, response ],
+                [ req, res, next ],
                 instance,
                 callback,
                 handler(args, req, res, next),
@@ -163,15 +169,16 @@ export class JsonRpcContextCreator {
             );
 
         const fnHandleResponse = this.createHandleResponseFn();
-
+        const responseHeaders = this.reflectResponseHeaders(callback);
+        const hasCustomHeaders = !isEmpty(responseHeaders);
         const handlerMetadata: HandlerMetadata = {
             argsLength,
             fnHandleResponse,
             paramtypes,
             getParamsMetadata,
-            httpStatusCode: 200,
-            hasCustomHeaders: false,
-            responseHeaders: [],
+            httpStatusCode: this.DEFAULT_RESPONSE_CODE,
+            hasCustomHeaders,
+            responseHeaders,
         };
         this.handlerMetadataStorage.set(instance, methodName, handlerMetadata);
         return handlerMetadata;
@@ -208,7 +215,7 @@ export class JsonRpcContextCreator {
             ) =>
                 this.paramsFactory.exchangeKeyForValue(numericType, data, {
                     req,
-                    res: response,
+                    res,
                     next,
                 });
             return { index, extractValue, type: numericType, data, pipes };
@@ -311,5 +318,11 @@ export class JsonRpcContextCreator {
             return resultOrDeffered.toPromise();
         }
         return resultOrDeffered;
+    }
+
+    public reflectResponseHeaders(
+        callback: (...args: unknown[]) => unknown,
+    ): CustomHeader[] {
+        return Reflect.getMetadata(HEADERS_METADATA, callback) || [];
     }
 }

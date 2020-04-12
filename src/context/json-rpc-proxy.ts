@@ -16,7 +16,7 @@ export class JsonRpcProxy {
             try {
                 return await targetCallback(req, res, next);
             } catch (e) {
-                const host = new ExecutionContextHost([ req, null ]);
+                const host = new ExecutionContextHost([ req, res, next ]);
                 exceptionsHandler.next(e, host);
 
                 return e;

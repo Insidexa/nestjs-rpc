@@ -30,6 +30,7 @@ export class RpcCallbackProxy {
         private readonly container: NestContainer,
         private readonly injector: Injector,
     ) {
+        const httpAdapterRef = container.getHttpAdapterRef();
         this.executionContextCreator = new JsonRpcContextCreator(
             new RouteParamsFactory(),
             new PipesContextCreator(container, this.config),
@@ -38,11 +39,12 @@ export class RpcCallbackProxy {
             new GuardsConsumer(),
             new InterceptorsContextCreator(container, this.config),
             new InterceptorsConsumer(),
+            httpAdapterRef,
         );
         this.exceptionsFilter = new RouterExceptionFilters(
             container,
             this.config,
-            container.getHttpAdapterRef(),
+            httpAdapterRef,
         );
     }
 

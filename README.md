@@ -1,4 +1,4 @@
-NestJS JSON RPC package - [nestjs-json-rpc](https://www.npmjs.com/package/@jashkasoft/nestjs-json-rpc) npm package
+## NestJS JSON RPC package - [nestjs-json-rpc](https://www.npmjs.com/package/@jashkasoft/nestjs-json-rpc) npm package
 
 ![Build](https://github.com/Insidexa/nestjs-rpc/workflows/Build/badge.svg)
 
@@ -54,14 +54,11 @@ Fields description
 | `id` | `@RpcId()`  | get client operation id  | false  | if not send - response not send, RPC notification  |
 
 
-However, you don't have an access to the native response object in
-Exception filters, Interceptors and Guards (as in the HTTP app).  
-Because RPCModule in rpc batch request collect responses from handlers
-and if you using response you override headers or send response in some handlers.
-Maybe, you can receive errors, for example `headers already sent`.  
-
-
 ##### Changelog versions:  
+`7.3.0`
+ - allow response object
+ - add custom headers
+
 `7.2.0`
  - add injection scopes ( REQUEST / TRANSIENT ) to JSON RPC handlers
  - add logging register handlers
