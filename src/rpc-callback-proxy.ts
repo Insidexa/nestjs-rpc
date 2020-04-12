@@ -119,7 +119,7 @@ export class RpcCallbackProxy {
                     contextId,
                     instanceWrapper
                 );
-                return await this.createCallbackProxy(
+                return this.createCallbackProxy(
                     contextInstance,
                     contextInstance[methodName],
                     methodName,

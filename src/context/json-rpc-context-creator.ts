@@ -283,7 +283,7 @@ export class JsonRpcContextCreator {
             next: Fn,
         ) => {
             await Promise.all(
-                paramsOptions.map(async (param: ParamProperties & { metatype?: Type<any> | undefined }) => {
+                paramsOptions.map(async (param: ParamProperties & { metatype?: Type<any> }) => {
                     const {
                         index,
                         extractValue,

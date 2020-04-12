@@ -8,22 +8,22 @@ export interface IRpcHandler<T = unknown> {
 export interface RpcErrorInterface {
     jsonrpc: string;
     error?: any;
-    method?: string | undefined;
-    id?: number | string | null | undefined;
+    method?: string;
+    id?: number | string | null;
 }
 
 export interface RpcRequestInterface {
     jsonrpc: string;
     params?: any;
-    id?: number | string | null | undefined;
+    id?: number | string | null;
     method: string;
 }
 
 export interface RpcResultInterface {
     jsonrpc: string;
     result?: any;
-    method?: string | undefined;
-    id?: number | string | null | undefined;
+    method?: string;
+    id?: number | string | null;
 }
 
 export interface JsonRpcConfig {
