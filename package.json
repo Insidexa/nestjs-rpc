@@ -1,11 +1,17 @@
 {
   "name": "@jashkasoft/nestjs-json-rpc",
-  "version": "7.3.1",
+  "version": "7.3.2",
   "description": "JSON RPC module for NestJS framework",
   "author": "jashka",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "MIT",
+  "files": [
+    "package.json",
+    "README.md",
+    "dist/**/*",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "lint": "tslint -p tsconfig.json -c tslint.json",
