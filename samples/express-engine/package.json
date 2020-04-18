@@ -21,7 +21,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@jashkasoft/nestjs-json-rpc": "7.3.2",
+    "@jashkasoft/nestjs-json-rpc": "7.4.0",
     "@nestjs/common": "7.0.8",
     "@nestjs/core": "7.0.8",
     "@nestjs/platform-express": "7.0.8",
