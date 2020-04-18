@@ -6,7 +6,7 @@ import { RpcRoutesResolver } from './rpc-routes-resolver';
 import { Injector } from '@nestjs/core/injector/injector';
 import { validatePath } from '@nestjs/common/utils/shared.utils';
 
-const JSON_RPC_OPTIONS = '__JSON_RPC_OPTIONS__';
+export const JSON_RPC_OPTIONS = '__JSON_RPC_OPTIONS__';
 
 @Module({})
 export class JsonRpcModule implements OnModuleInit {
@@ -30,7 +30,12 @@ export class JsonRpcModule implements OnModuleInit {
                 },
                 JsonRpcServer,
             ],
-            exports: [],
+            exports: [
+                {
+                    provide: JSON_RPC_OPTIONS,
+                    useValue: config,
+                },
+            ],
             controllers: [],
         };
     }
@@ -43,6 +48,9 @@ export class JsonRpcModule implements OnModuleInit {
                 JsonRpcServer,
                 ...this.createAsyncProvider(options),
             ],
+            exports: [
+                ...this.createAsyncProvider(options),
+            ]
         };
     }
 

@@ -35,11 +35,11 @@ export interface JsonRpcOptionsFactory {
 }
 
 export interface JsonRpcModuleAsyncOptions {
-    imports: any[];
-    useExisting: Type<JsonRpcOptionsFactory>;
-    useClass: Type<JsonRpcOptionsFactory>;
-    useFactory: (...args: any[]) => Promise<JsonRpcConfig> | JsonRpcConfig;
-    inject: any[];
+    imports?: any[];
+    useExisting?: Type<JsonRpcOptionsFactory>;
+    useClass?: Type<JsonRpcOptionsFactory>;
+    useFactory?: (...args: any[]) => Promise<JsonRpcConfig> | JsonRpcConfig;
+    inject?: any[];
 }
 
 export interface RpcMetadata {

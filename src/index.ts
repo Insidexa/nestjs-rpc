@@ -8,4 +8,4 @@ export * from './exception/rpc-parse.exception';
 
 export * from './context/decorators';
 export { IRpcHandler, JsonRpcConfig, JsonRpcOptionsFactory, JsonRpcModuleAsyncOptions } from './interfaces';
-export { JsonRpcModule } from './json-rpc.module';
+export { JsonRpcModule, JSON_RPC_OPTIONS } from './json-rpc.module';

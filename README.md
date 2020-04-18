@@ -68,6 +68,16 @@ See examples in samples folder
 
 
 ### Changelog:  
+
+`7.4.0`
+ - fix types for `JsonRpcModule` async options
+ - export `JSON_RPC_OPTIONS`.  
+   You can inject rpc config:  
+   `@Inject(JSON_RPC_OPTIONS) private config: JsonRpcConfig`
+
+`7.3.2`
+ - decrease bundle size
+
 `7.3.0`
  - allow response object
  - add custom headers
