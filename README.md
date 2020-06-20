@@ -8,7 +8,7 @@ Implemented JSON RPC [specification](https://www.jsonrpc.org/specification)
 ## Contents
 
 - [Install](#install)
-- [Import module](#import module)
+- [Import module](#import-module)
 - [How to use simple handler](#how-to-use-simple-handler)
     - [Create handler](#create-simple-handler)
     - [Add to providers](#add-simple-handler-provider)
@@ -26,7 +26,7 @@ Implemented JSON RPC [specification](https://www.jsonrpc.org/specification)
 
    `npm i --save @jashkasoft/nestjs-json-rpc`
 
-### <a id="install"></a> Import module
+### <a id="import-module"></a> Import module
 
 Import module `RpcModule` from `@jashkasoft/nestjs-json-rpc`, example  
 
