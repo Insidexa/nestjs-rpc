@@ -1,20 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import * as request from 'supertest';
-import { JsonRpcModule, RpcHandler, RpcId, RpcMethod, RpcPayload, RpcVersion, IRpcHandler } from '../src';
+import { JsonRpcModule } from '../src';
+import { TestHandler } from './handlers/test-handler';
 
-@RpcHandler({
-  method: 'test',
-})
-export class TestHandler implements IRpcHandler<any> {
-  public async invoke(
-      @RpcPayload() payload: any,
-      @RpcVersion() version: string,
-      @RpcMethod() method: string,
-      @RpcId() id: any,
-  ) {
-    return payload;
-  }
-}
 
 describe('Test json rpc specification', () => {
   let app;

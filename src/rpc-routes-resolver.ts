@@ -2,10 +2,9 @@ import { MODULE_PATH } from '@nestjs/common/constants';
 import { HttpServer, Type } from '@nestjs/common/interfaces';
 import { Logger } from '@nestjs/common/services/logger.service';
 import { Resolver } from '@nestjs/core/router/interfaces/resolver.interface';
-import { ApplicationConfig, NestContainer } from '@nestjs/core';
-import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
+import { ApplicationConfig, MetadataScanner, NestContainer } from '@nestjs/core';
 import { Injector } from '@nestjs/core/injector/injector';
-import { IRpcHandler, JsonRpcConfig } from './interfaces';
+import { JsonRpcConfig, RpcMethodHandler } from './interfaces';
 import { JsonRpcExplorer } from './json-rpc-explorer';
 import { RouterProxyCallback } from '@nestjs/core/router/router-proxy';
 import { RpcMetadataKey } from './index';
@@ -23,13 +22,16 @@ export interface RpcProxyHandler {
 export class RpcRoutesResolver implements Resolver {
     private readonly logger = new Logger(RpcRoutesResolver.name, true);
     private rpcCallbackProxy: RpcCallbackProxy;
+    private jsonRpcExplorer: JsonRpcExplorer;
 
     constructor(
         private readonly container: NestContainer,
         private readonly config: ApplicationConfig,
         private readonly injector: Injector,
         private readonly rpcConfig: JsonRpcConfig,
+        private readonly metadataScanner: MetadataScanner,
     ) {
+        this.jsonRpcExplorer = new JsonRpcExplorer(this.metadataScanner);
         this.rpcCallbackProxy = new RpcCallbackProxy(
             this.config,
             this.container,
@@ -43,8 +45,8 @@ export class RpcRoutesResolver implements Resolver {
         modules.forEach(({ providers, metatype }, moduleName) => {
             let path = metatype ? this.getModulePathMetadata(metatype) : undefined;
             path = path ? basePath + path : basePath;
-            const rpcHandlers = JsonRpcExplorer.exploreProviders(providers);
-            const moduleRpcProxies = this.registerRouters(rpcHandlers, moduleName, path);
+            const rpcMethodHandlers = this.jsonRpcExplorer.explore(providers);
+            const moduleRpcProxies = this.registerRouters(rpcMethodHandlers, moduleName, path);
             moduleRpcProxies.forEach(({ method, proxy }) => handlers.set(method, proxy))
         });
 
@@ -52,14 +54,14 @@ export class RpcRoutesResolver implements Resolver {
     }
 
     public registerRouters(
-        routes: InstanceWrapper<IRpcHandler>[],
+        routes: RpcMethodHandler[],
         moduleKey: string,
         basePath: string,
     ): RpcProxyHandler[] {
-        const methodName = 'invoke';
         const path = basePath + this.rpcConfig.path;
-        return routes.map(instanceWrapper => {
-            const { metatype, instance } = instanceWrapper;
+        return routes.map(rpcMethodHandler => {
+            const { instanceWrapper, rpcMethodName } = rpcMethodHandler;
+            const { metatype } = instanceWrapper;
 
             const rpcHandlerName = metatype.name;
             this.logger.log(
@@ -70,12 +72,11 @@ export class RpcRoutesResolver implements Resolver {
             );
 
             const proxy = this.rpcCallbackProxy.create(
-                instanceWrapper,
+                rpcMethodHandler,
                 moduleKey,
-                methodName,
             );
-            const { method } = Reflect.getMetadata(RpcMetadataKey, instance.constructor);
-            return { proxy, method };
+
+            return { proxy, method: rpcMethodName };
         });
     }
 

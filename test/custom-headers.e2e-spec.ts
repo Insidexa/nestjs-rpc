@@ -1,22 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import * as request from 'supertest';
-import { JsonRpcModule, RpcHandler, RpcId, RpcMethod, RpcPayload, RpcVersion, IRpcHandler } from '../src';
-import { Header } from '@nestjs/common';
-
-@RpcHandler({
-  method: 'test',
-})
-export class TestHandler implements IRpcHandler<any> {
-  @Header('Handler-Name', TestHandler.name)
-  public async invoke(
-      @RpcPayload() payload: any,
-      @RpcVersion() version: string,
-      @RpcMethod() method: string,
-      @RpcId() id: any,
-  ) {
-    return payload;
-  }
-}
+import { JsonRpcModule } from '../src';
+import { CustomHeaderHandler } from './handlers/custom-header';
 
 describe('Test json rpc custom headers', () => {
   let app;
@@ -28,7 +13,7 @@ describe('Test json rpc custom headers', () => {
           path: '/rpc',
         }),
       ],
-      providers: [TestHandler],
+      providers: [CustomHeaderHandler],
     }).compile();
 
     app = moduleFixture.createNestApplication();
@@ -55,7 +40,7 @@ describe('Test json rpc custom headers', () => {
 
       const handlerNameHeader = header['handler-name'];
 
-      expect(handlerNameHeader).toEqual(TestHandler.name);
+      expect(handlerNameHeader).toEqual(CustomHeaderHandler.name);
     });
   });
 });
