@@ -159,6 +159,7 @@ See examples in samples folder
 
 `7.5.0`
  - add multiple RPC handlers for class
+ - NestJS 7.2.*
 
 `7.4.0`
  - fix types for `JsonRpcModule` async options
