@@ -7,12 +7,11 @@ import { Injector } from '@nestjs/core/injector/injector';
 import { JsonRpcConfig, RpcMethodHandler } from './interfaces';
 import { JsonRpcExplorer } from './json-rpc-explorer';
 import { RouterProxyCallback } from '@nestjs/core/router/router-proxy';
-import { RpcMetadataKey } from './index';
 import { RpcCallbackProxy } from './rpc-callback-proxy';
 import { ProxyCallback } from './types';
 
-export const RPC_MAPPING_MESSAGE = (name: string, path: string) =>
-    `Registered ${name} {${path}}:`;
+export const RPC_MAPPING_MESSAGE = (name: string, path: string, method: string) =>
+    `Registered handler ${name} with method {${method}} on path {${path}}:`;
 
 export interface RpcProxyHandler {
     proxy: ProxyCallback;
@@ -68,6 +67,7 @@ export class RpcRoutesResolver implements Resolver {
                 RPC_MAPPING_MESSAGE(
                     rpcHandlerName,
                     path,
+                    rpcMethodName,
                 ),
             );
 
