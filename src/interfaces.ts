@@ -1,5 +1,6 @@
 import { Type } from '@nestjs/common';
 import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
+import { Observable } from 'rxjs';
 
 export interface IRpcHandler<T = unknown> {
     invoke(...args);
@@ -43,11 +44,12 @@ export interface JsonRpcModuleAsyncOptions {
 }
 
 export interface RpcMetadata {
-    method: string;
+    method?: string;
 }
 
-export interface RpcHandlerInfo {
-    method: string;
-    moduleKey: string;
-    instanceWrapper: InstanceWrapper<IRpcHandler>;
+export interface RpcMethodHandler {
+    methodName: string;
+    callback: (...args: any[]) => Observable<any> | Promise<any> | any;
+    rpcMethodName: string;
+    instanceWrapper: InstanceWrapper<IRpcHandler<any> | Type<any>>;
 }

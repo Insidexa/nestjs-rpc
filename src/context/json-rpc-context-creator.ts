@@ -41,7 +41,7 @@ export class JsonRpcContextCreator {
     }
 
     public create<TContext extends string = ContextType>(
-        instance: IRpcHandler,
+        instance: IRpcHandler<any> | Type<any>,
         callback: (...args: unknown[]) => unknown,
         methodName: string,
         module: string,

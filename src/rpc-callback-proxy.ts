@@ -1,4 +1,4 @@
-import { IRpcHandler } from './interfaces';
+import { IRpcHandler, RpcMethodHandler } from './interfaces';
 import { RouterProxyCallback } from '@nestjs/core/router/router-proxy';
 import { STATIC_CONTEXT } from '@nestjs/core/injector/constants';
 import { ContextId, InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
@@ -18,6 +18,7 @@ import { InterceptorsContextCreator } from '@nestjs/core/interceptors/intercepto
 import { InterceptorsConsumer } from '@nestjs/core/interceptors/interceptors-consumer';
 import { Injector } from '@nestjs/core/injector/injector';
 import { ProxyCallback } from './types';
+import { Type } from '@nestjs/common';
 
 export class RpcCallbackProxy {
     private readonly routerProxy = new JsonRpcProxy();
@@ -49,10 +50,14 @@ export class RpcCallbackProxy {
     }
 
     public create(
-        instanceWrapper: InstanceWrapper<IRpcHandler>,
+        rpcMethodHandler: RpcMethodHandler,
         moduleKey: string,
-        methodName: string
     ) {
+        const {
+            instanceWrapper,
+            methodName,
+            callback,
+        } = rpcMethodHandler;
         const { instance } = instanceWrapper;
         const isRequestScoped = !instanceWrapper.isDependencyTreeStatic();
 
@@ -65,14 +70,14 @@ export class RpcCallbackProxy {
             )
             : this.createCallbackProxy(
                 instance,
-                instance.invoke,
+                callback,
                 methodName,
                 moduleKey,
             );
     }
 
     private createCallbackProxy(
-        instance: IRpcHandler,
+        instance: IRpcHandler<any> | Type<any>,
         callback: RouterProxyCallback,
         methodName: string,
         moduleRef: string,

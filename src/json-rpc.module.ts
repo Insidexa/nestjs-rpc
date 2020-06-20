@@ -1,5 +1,5 @@
 import { DynamicModule, Inject, Module, OnModuleInit, Provider } from '@nestjs/common';
-import { ApplicationConfig, HttpAdapterHost, ModuleRef, NestContainer } from '@nestjs/core';
+import { ApplicationConfig, HttpAdapterHost, MetadataScanner, ModuleRef, NestContainer } from '@nestjs/core';
 import { JsonRpcServer } from './json-rpc-server';
 import { JsonRpcConfig, JsonRpcModuleAsyncOptions, JsonRpcOptionsFactory } from './index';
 import { RpcRoutesResolver } from './rpc-routes-resolver';
@@ -88,11 +88,13 @@ export class JsonRpcModule implements OnModuleInit {
             container: NestContainer,
             injector: Injector,
         };
+        const metadataScanner = new MetadataScanner();
         const routesResolver = new RpcRoutesResolver(
             container,
             this.nestConfig,
             injector,
             this.config,
+            metadataScanner,
         );
         const prefix = this.nestConfig.getGlobalPrefix();
         const basePath = validatePath(prefix);
