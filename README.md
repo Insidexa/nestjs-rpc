@@ -7,27 +7,43 @@ Implemented JSON RPC [specification](https://www.jsonrpc.org/specification)
 
 ## Contents
 
-- [How to use](#how-to-use)
+- [Install](#install)
+- [Import module](#import module)
+- [How to use simple handler](#how-to-use-simple-handler)
+    - [Create handler](#create-simple-handler)
+    - [Add to providers](#add-simple-handler-provider)
+    - [Test with curl](#test-simple-handler-curl)
+- [How to use multiple handlers in one class](#multi-handlers-in-class)
+    - [Create handlers](#create-multiple-handlers)
+    - [Add to providers](#add-multiple-handler-provider)
+    - [Test with curl](#test-multiple-handler-curl)
 - [Decorators description](#decorators-description)
 - [Samples](#samples)
 - [Changelog](#changelog)
 
 
-### How to use
+### <a id="install"></a> Install
 
- - Install package  
    `npm i --save @jashkasoft/nestjs-json-rpc`
 
- - import module `RpcModule` from `@jashkasoft/nestjs-json-rpc`, example  
+### <a id="install"></a> Import module
+
+Import module `RpcModule` from `@jashkasoft/nestjs-json-rpc`, example  
+
 ```typescript
         JsonRpcModule.forRoot({
             path: '/rpc', // path to RPC
         })
 ```
- 
- - every request to RPC is POST method and response status = 200
- 
- - create rpc handler  
+
+### <a id="how-to-use-simple-handler"></a> How to use simple handler
+
+Create simple RPC handler
+
+#### <a id="create-simple-handler"></a> Create handler
+
+create RPC handler  
+
 ```typescript
 import { RpcId, RpcPayload, RpcVersion, RpcMethod, IRpcHandler, RpcHandler } from '@jashkasoft/nestjs-json-rpc';
 
@@ -46,12 +62,84 @@ export class TestHandler implements IRpcHandler<Payload> {
 }
 ```
 
- - add `TestHandler` to providers array  
- - test with curl  
-   ```bash
-   curl -X POST "http://localhost:3000/rpc" -H "accept: application/json" -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "method": "test", "id": 2}'
-    ```
+
+#### <a id="add-simple-handler-provider"></a> Add to providers
+
+Add `TestHandler` to providers array  
+
+ 
+#### <a id="test-simple-handler-curl"></a> Test with cURL
+
+Every request to RPC is POST method and response status = 200  
+
+Test with curl  
+
+```bash
+curl -X POST "http://localhost:3000/rpc" -H "accept: application/json" -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "method": "test", "id": 2}'
+```
     
+    
+
+### <a id="multi-handlers-in-class"></a> How to use multiple handlers in one class
+
+Create multiple RPC handler in one class  
+
+#### <a id="create-multiple-handlers"></a> Create handlers
+
+Create RPC class handler  
+
+```typescript
+import { RpcId, RpcPayload, RpcVersion, RpcMethod, RpcMethodHandler, RpcHandler } from '@jashkasoft/nestjs-json-rpc';
+
+@RpcHandler({
+    method: 'contact',
+})
+export class ContactHandler {
+    @RpcMethodHandler('add')
+    public async add(
+        @RpcPayload() payload: Payload,
+        @RpcVersion() version: string,
+        @RpcId() id: number | string,
+        @RpcMethod() method: string
+    ) {
+        return payload;
+    }
+    
+    @RpcMethodHandler('delete')
+    public async delete(
+        @RpcPayload() payload: Payload,
+        @RpcVersion() version: string,
+        @RpcId() id: number | string,
+        @RpcMethod() method: string
+    ) {
+        return payload;
+    }
+}
+```
+
+
+#### <a id="add-multiple-handler-provider"></a> Add to providers
+
+Add `ContactHandler` to providers array  
+
+ 
+#### <a id="test-multiple-handler-curl"></a> Test with cURL
+
+Every request to RPC is POST method and response status = 200  
+
+Test with curl `contact.add`  
+
+```bash
+curl -X POST "http://localhost:3000/rpc" -H "accept: application/json" -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "method": "contact.add", "id": 2}'
+```
+    
+
+Test with curl `contact.delete`  
+
+```bash
+curl -X POST "http://localhost:3000/rpc" -H "accept: application/json" -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "method": "contact.delete", "id": 2}'
+```
+
 
 ### Decorators description
 
@@ -68,6 +156,9 @@ See examples in samples folder
 
 
 ### Changelog:  
+
+`7.5.0`
+ - add multiple RPC handlers for class
 
 `7.4.0`
  - fix types for `JsonRpcModule` async options
