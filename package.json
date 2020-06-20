@@ -32,7 +32,7 @@
     "rxjs": "6.5.5",
     "@nestjs/testing": "7.2.0",
     "@types/express": "4.17.6",
-    "@types/jest": "25.2.3",
+    "@types/jest": "26.0.0",
     "@types/node": "12.12.47",
     "@types/supertest": "2.0.9",
     "jest": "26.0.1",
