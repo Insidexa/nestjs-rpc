@@ -5,7 +5,7 @@ export type Fn = (...args) => any;
 export type RpcRequest = RpcRequestInterface | RpcRequestInterface[];
 export type RpcResult = RpcResultInterface | RpcResultInterface[];
 export type RpcResponse = RpcRequest | RpcResult;
-export type Response = (RpcResultInterface | RpcErrorInterface | null)[];
+export type ResponseBatch = (RpcResultInterface | RpcErrorInterface | null)[];
 
 export type ProxyCallback = <TRequest, TResponse>(
     req?: TRequest,

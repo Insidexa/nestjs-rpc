@@ -157,6 +157,11 @@ See examples in samples folder
 
 ### Changelog:  
 
+`7.6.0`
+ - NestJS 7.3.* ( breaking change )
+ - typescript 3.9.7 ( breaking change )
+ - use DiscoveryModule
+
 `7.5.0`
  - add multiple RPC handlers for class
  - NestJS 7.2.*
