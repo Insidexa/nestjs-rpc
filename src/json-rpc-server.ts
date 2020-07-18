@@ -15,7 +15,10 @@ import {
     RpcRequestInterface,
     RpcResultInterface,
 } from './interfaces';
-import { ProxyCallback, Response, RpcRequest, RpcResponse } from './types';
+import { ProxyCallback, ResponseBatch, RpcRequest, RpcResponse } from './types';
+
+type TRequest = any;
+type TResponse = any;
 
 @Injectable()
 export class JsonRpcServer {
@@ -37,7 +40,7 @@ export class JsonRpcServer {
         this.httpAdapterHost.httpAdapter.post(config.path, this.onRequest.bind(this));
     }
 
-    private onRequest<TRequest extends any, TResponse = any>(request: TRequest, response: TResponse, next: () => void) {
+    private onRequest(request: TRequest, response: TResponse, next: () => void) {
         if (Array.isArray(request.body)) {
             this.batchRequest(request, response, next);
 
@@ -49,7 +52,7 @@ export class JsonRpcServer {
         });
     }
 
-    private batchRequest<TRequest extends any, TResponse = any>(request: TRequest, response: TResponse, next: () => void) {
+    private batchRequest(request: TRequest, response: TResponse, next: () => void) {
         const batch = request.body as RpcRequestInterface[];
         if (batch.length === 0) {
             this.sendResponse(
@@ -68,7 +71,7 @@ export class JsonRpcServer {
         });
 
         forkJoin(...requests)
-            .subscribe((results: Response) => {
+            .subscribe((results: ResponseBatch) => {
                 const responses = results.filter(result => {
                     return result && result.id !== undefined;
                 });
@@ -85,7 +88,7 @@ export class JsonRpcServer {
         );
     }
 
-    private lifecycle<TRequest extends any, TResponse = any>(request: TRequest, response: TResponse, next: () => void): Observable<RpcResponse> {
+    private lifecycle(request: TRequest, response: TResponse, next: () => void): Observable<RpcResponse> {
         return of<RpcRequestInterface>(request.body as RpcRequestInterface)
             .pipe(
                 tap(body => this.assertRPCStructure(body)),
@@ -115,7 +118,7 @@ export class JsonRpcServer {
         return this.wrapRPCError(body, result);
     }
 
-    private resolveWaitingResponse<TRequest = any, TResponse = any>(
+    private resolveWaitingResponse(
         body: RpcRequestInterface,
         request: TRequest,
         response: TResponse,

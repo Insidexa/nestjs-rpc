@@ -1,6 +1,6 @@
 {
   "name": "@jashkasoft/nestjs-json-rpc",
-  "version": "7.5.0",
+  "version": "7.6.0",
   "description": "JSON RPC module for NestJS framework",
   "author": "jashka",
   "main": "dist/index.js",
@@ -20,28 +20,26 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest"
   },
-  "dependencies": {
-    "lodash": "^4.17.15"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@nestjs/common": "7.3.2",
     "@nestjs/core": "7.3.2",
     "@nestjs/platform-express": "7.3.2",
     "@nestjs/platform-fastify": "7.3.2",
-    "reflect-metadata": "0.1.13",
-    "rxjs": "6.6.0",
     "@nestjs/testing": "7.3.2",
     "@types/express": "4.17.7",
     "@types/jest": "26.0.4",
     "@types/node": "12.12.50",
     "@types/supertest": "2.0.10",
     "jest": "26.1.0",
+    "reflect-metadata": "0.1.13",
+    "rxjs": "6.6.0",
     "supertest": "4.0.2",
     "ts-jest": "26.1.3",
     "ts-node": "8.10.2",
     "tsconfig-paths": "3.9.0",
     "tslint": "6.1.2",
-    "typescript": "3.8.3"
+    "typescript": "^3.9.7"
   },
   "jest": {
     "moduleFileExtensions": [
