@@ -2,7 +2,7 @@ import { MODULE_PATH } from '@nestjs/common/constants';
 import { HttpServer, Type } from '@nestjs/common/interfaces';
 import { Logger } from '@nestjs/common/services/logger.service';
 import { Resolver } from '@nestjs/core/router/interfaces/resolver.interface';
-import { ApplicationConfig, MetadataScanner, NestContainer } from '@nestjs/core';
+import { ApplicationConfig, NestContainer } from '@nestjs/core';
 import { Injector } from '@nestjs/core/injector/injector';
 import { JsonRpcConfig, RpcMethodHandler } from './interfaces';
 import { JsonRpcExplorer } from './json-rpc-explorer';
@@ -21,16 +21,14 @@ export interface RpcProxyHandler {
 export class RpcRoutesResolver implements Resolver {
     private readonly logger = new Logger(RpcRoutesResolver.name, true);
     private rpcCallbackProxy: RpcCallbackProxy;
-    private jsonRpcExplorer: JsonRpcExplorer;
 
     constructor(
         private readonly container: NestContainer,
         private readonly config: ApplicationConfig,
         private readonly injector: Injector,
         private readonly rpcConfig: JsonRpcConfig,
-        private readonly metadataScanner: MetadataScanner,
+        private readonly jsonRpcExplorer: JsonRpcExplorer,
     ) {
-        this.jsonRpcExplorer = new JsonRpcExplorer(this.metadataScanner);
         this.rpcCallbackProxy = new RpcCallbackProxy(
             this.config,
             this.container,
@@ -41,10 +39,11 @@ export class RpcRoutesResolver implements Resolver {
     public resolve<T extends HttpServer>(applicationRef: T, basePath: string): Map<string, RouterProxyCallback> {
         const modules = this.container.getModules();
         const handlers = new Map<string, RouterProxyCallback>();
-        modules.forEach(({ providers, metatype }, moduleName) => {
+        modules.forEach((module, moduleName) => {
+            const { metatype } = module;
             let path = metatype ? this.getModulePathMetadata(metatype) : undefined;
             path = path ? basePath + path : basePath;
-            const rpcMethodHandlers = this.jsonRpcExplorer.explore(providers);
+            const rpcMethodHandlers = this.jsonRpcExplorer.explore(module);
             const moduleRpcProxies = this.registerRouters(rpcMethodHandlers, moduleName, path);
             moduleRpcProxies.forEach(({ method, proxy }) => handlers.set(method, proxy))
         });

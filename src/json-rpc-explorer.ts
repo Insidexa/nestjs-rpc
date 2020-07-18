@@ -1,23 +1,28 @@
-import { compact } from 'lodash';
 import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
-import { Injectable as IInjectable } from '@nestjs/common/interfaces';
 import { RpcMetadataKey, RpcMethodMetadataKey } from './context/decorators';
 import { RpcMethodHandler } from './interfaces';
-import { MetadataScanner } from '@nestjs/core';
+import { DiscoveryService, MetadataScanner } from '@nestjs/core';
 import { isUndefined } from '@nestjs/common/utils/shared.utils';
+import { Module } from '@nestjs/core/injector/module';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 export class JsonRpcExplorer {
+    private metadataScanner = new MetadataScanner();
+    private defaultSingleMethod = 'invoke';
+
     constructor(
-        private metadataScanner: MetadataScanner,
+        private nestDiscovery: DiscoveryService,
     ) {
     }
 
-    public explore(components: Map<any, InstanceWrapper<IInjectable>>): RpcMethodHandler[] {
-        return compact([...components.values()]
+    public explore(module: Module): RpcMethodHandler[] {
+        return this.nestDiscovery
+            .getProviders({}, [module])
             .reduce((acc, instanceWrapper) => {
                 const methods = this.filterHandlers(instanceWrapper);
                 return [...acc, ...methods ? methods: [] ];
-            }, []));
+            }, []);
     }
 
     private filterHandlers(instanceWrapper: InstanceWrapper): RpcMethodHandler[] {
@@ -33,11 +38,11 @@ export class JsonRpcExplorer {
         }
         const instancePrototype = Object.getPrototypeOf(instanceWrapper.instance);
 
-        if (instance.invoke) {
+        if (instance[this.defaultSingleMethod]) {
             return [
                 {
                     callback: instance.invoke,
-                    methodName: 'invoke',
+                    methodName: this.defaultSingleMethod,
                     instanceWrapper,
                     rpcMethodName: metadata.method,
                 },

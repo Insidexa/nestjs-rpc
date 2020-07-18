@@ -1,10 +1,11 @@
 import { DynamicModule, Inject, Module, OnModuleInit, Provider } from '@nestjs/common';
-import { ApplicationConfig, HttpAdapterHost, MetadataScanner, ModuleRef, NestContainer } from '@nestjs/core';
+import { ApplicationConfig, HttpAdapterHost, ModuleRef, NestContainer, DiscoveryModule } from '@nestjs/core';
 import { JsonRpcServer } from './json-rpc-server';
 import { JsonRpcConfig, JsonRpcModuleAsyncOptions, JsonRpcOptionsFactory } from './index';
 import { RpcRoutesResolver } from './rpc-routes-resolver';
 import { Injector } from '@nestjs/core/injector/injector';
 import { validatePath } from '@nestjs/common/utils/shared.utils';
+import { JsonRpcExplorer } from './json-rpc-explorer';
 
 export const JSON_RPC_OPTIONS = '__JSON_RPC_OPTIONS__';
 
@@ -16,19 +17,23 @@ export class JsonRpcModule implements OnModuleInit {
         private moduleRef: ModuleRef,
         private nestConfig: ApplicationConfig,
         private httpAdapterHost: HttpAdapterHost,
+        private jsonRpcExplorer: JsonRpcExplorer,
     ) {
     }
 
     public static forRoot(config: JsonRpcConfig): DynamicModule {
         return {
             module: JsonRpcModule,
-            imports: [],
+            imports: [
+                DiscoveryModule,
+            ],
             providers: [
                 {
                     provide: JSON_RPC_OPTIONS,
                     useValue: config,
                 },
                 JsonRpcServer,
+                JsonRpcExplorer,
             ],
             exports: [
                 {
@@ -43,9 +48,13 @@ export class JsonRpcModule implements OnModuleInit {
     public static forRootAsync(options: JsonRpcModuleAsyncOptions): DynamicModule {
         return {
             module: JsonRpcModule,
-            imports: options.imports || [],
+            imports: [
+                ...options.imports || [],
+                DiscoveryModule,
+            ],
             providers: [
                 JsonRpcServer,
+                JsonRpcExplorer,
                 ...this.createAsyncProvider(options),
             ],
             exports: [
@@ -88,13 +97,12 @@ export class JsonRpcModule implements OnModuleInit {
             container: NestContainer,
             injector: Injector,
         };
-        const metadataScanner = new MetadataScanner();
         const routesResolver = new RpcRoutesResolver(
             container,
             this.nestConfig,
             injector,
             this.config,
-            metadataScanner,
+            this.jsonRpcExplorer,
         );
         const prefix = this.nestConfig.getGlobalPrefix();
         const basePath = validatePath(prefix);
